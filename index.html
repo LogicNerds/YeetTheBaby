@@ -818,16 +818,22 @@
         });
 
         // ========================================
-        // START GAME
         // ========================================
-       document.getElementById('startBtn').addEventListener('click', () => {
-    document.getElementById('startScreen').style.display = 'none';
-    gameState = 'ready';
-    if (audioEnabled) {
-        bgMusic.play().catch(e => console.log('Audio autoplay prevented'));
+// START GAME
+// ========================================
+window.addEventListener('DOMContentLoaded', () => {
+    const startBtn = document.getElementById('startBtn');
+    if (startBtn) {
+        startBtn.addEventListener('click', () => {
+            document.getElementById('startScreen').style.display = 'none';
+            gameState = 'ready';
+            if (audioEnabled) {
+                bgMusic.play().catch(e => console.log('Audio autoplay prevented'));
+            }
+            animatePowerIndicator();
+            gameLoop();
+        });
     }
-    animatePowerIndicator();
-    gameLoop();
 });
 
         // ========================================
