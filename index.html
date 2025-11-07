@@ -818,15 +818,17 @@
         // ========================================
         // START GAME
         // ========================================
-        document.getElementById('startBtn').addEventListener('click', () => {
-            document.getElementById('startScreen').style.display = 'none';
-            gameState = 'ready';
-            if (audioEnabled) {
-                bgMusic.play().catch(e => console.log('Audio autoplay prevented'));
-            }
-            animatePowerIndicator();
-            gameLoop();
-        });
+       window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('startBtn').addEventListener('click', () => {
+        document.getElementById('startScreen').style.display = 'none';
+        gameState = 'ready';
+        if (audioEnabled) {
+            bgMusic.play().catch(e => console.log('Audio autoplay prevented'));
+        }
+        animatePowerIndicator();
+        gameLoop();
+    });
+});
 
         // ========================================
         // YEET SCALE MECHANIC
