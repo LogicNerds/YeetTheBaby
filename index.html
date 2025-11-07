@@ -23,6 +23,29 @@
             position: relative;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Game container wrapper */
+        #gameContainer {
+            width: 100%;
+            height: 100%;
+            max-width: 600px;
+            max-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #E8D5F2;
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        @media (min-width: 768px) {
+            #gameContainer {
+                max-height: 95vh;
+                aspect-ratio: 9 / 16;
+                height: auto;
+            }
         }
 
         /* ========================================
@@ -428,7 +451,7 @@
             #startBtn { font-size: 24px; padding: 15px 40px; }
             
             #controlArea {
-                height: 200px;
+                height: 160px;
                 flex-direction: column;
                 padding: 10px;
             }
@@ -443,17 +466,24 @@
             #yeetBtn {
                 margin-left: 0;
                 width: 100%;
-                padding: 20px 30px;
-                font-size: 28px;
+                padding: 15px 30px;
+                font-size: 24px;
             }
             
-            .scale-title { font-size: 20px; }
-            #caption { font-size: 28px; padding: 20px 30px; }
-            .cps-title { font-size: 48px; }
-            .cps-subtitle { font-size: 24px; }
-            .cps-stats { font-size: 20px; padding: 15px 25px; }
-            #ui { font-size: 18px; }
-            #restartBtn { font-size: 18px; padding: 10px 25px; }
+            .scale-title { font-size: 18px; }
+            .scale-bar-labels, .angle-bar-labels { font-size: 10px; }
+            #caption { font-size: 24px; padding: 15px 25px; }
+            .cps-title { font-size: 36px; }
+            .cps-subtitle { font-size: 20px; }
+            .cps-stats { font-size: 18px; padding: 15px 25px; }
+            #ui { font-size: 16px; }
+            #restartBtn { font-size: 16px; padding: 8px 20px; }
+            #audioToggle { width: 40px; height: 40px; font-size: 20px; }
+        }
+
+        @media (min-width: 769px) {
+            .game-title { font-size: 72px; }
+            .game-tagline { font-size: 28px; }
         }
 
         /* ========================================
@@ -498,8 +528,10 @@
         <div class="credits">Neon Bread Studios © 2025</div>
     </div>
 
-    <!-- Game Area (top) -->
-    <div id="gameArea">
+    <!-- Game Container (for responsive scaling) -->
+    <div id="gameContainer">
+        <!-- Game Area (top) -->
+        <div id="gameArea">
         <!-- Background Clouds -->
         <div class="cloud" style="top: 10%; left: 10%; width: 100px; height: 50px;"></div>
         <div class="cloud" style="top: 20%; left: 70%; width: 120px; height: 60px; animation-delay: -5s;"></div>
@@ -573,6 +605,8 @@
         <!-- Yeet Button -->
         <button id="yeetBtn" class="btn">YEET!</button>
     </div>
+    </div>
+    <!-- End Game Container -->
 
     <!-- Background Music -->
     <audio id="bgMusic" loop>
@@ -591,7 +625,43 @@
             const gameArea = document.getElementById('gameArea');
             canvas.width = gameArea.clientWidth;
             canvas.height = gameArea.clientHeight;
+            
+            // Update landing zones based on canvas size
+            updateLandingZonePositions();
+            
+            // Update parent position
+            parent.y = canvas.height - 150;
+            if (baby && !baby.flying) {
+                baby.x = parent.x + 40;
+                baby.y = parent.y;
+            }
         }
+        
+        function updateLandingZonePositions() {
+            // Scale landing zones based on canvas width
+            const baseWidth = 1200; // Design width
+            const scale = canvas.width / baseWidth;
+            const groundY = canvas.height - 120;
+            
+            // Pool
+            landingZones[0].x = 400 * scale;
+            landingZones[0].y = groundY - 30;
+            landingZones[0].width = 120 * scale;
+            landingZones[0].height = 60;
+            
+            // Crib
+            landingZones[1].x = 650 * scale;
+            landingZones[1].y = groundY - 30;
+            landingZones[1].width = 140 * scale;
+            landingZones[1].height = 70;
+            
+            // Bear
+            landingZones[2].x = 950 * scale;
+            landingZones[2].y = groundY - 80;
+            landingZones[2].width = 150 * scale;
+            landingZones[2].height = 120;
+        }
+        
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
@@ -826,16 +896,16 @@
             // Power: 0-100 becomes velocity 8-28 (increased range for better gameplay)
             const velocity = (powerValue / 100) * 20 + 8;
             
-            // Angle: 0 = down (-90°), 50 = straight (0°), 100 = up (90°)
-// We need to invert Y because canvas Y goes down, but we want "up" to mean up
-let angleDegrees;
-if (angleValue < 50) {
-    // Left side of bar = DOWN (negative angle)
-    angleDegrees = -90 + (angleValue * 1.8); // -90° to 0°
-} else {
-    // Right side of bar = UP (positive angle)
-    angleDegrees = (angleValue - 50) * 1.8; // 0° to 90°
-}
+            // Angle: 0 = up (90°), 50 = straight (0°), 100 = down (-90°)
+            // We need to invert Y because canvas Y goes down, but we want "up" to mean up
+            let angleDegrees;
+            if (angleValue < 50) {
+                // Left side of bar = UP (positive angle)
+                angleDegrees = 90 - (angleValue * 1.8); // 90° to 0°
+            } else {
+                // Right side of bar = DOWN (negative angle)
+                angleDegrees = -(angleValue - 50) * 1.8; // 0° to -90°
+            }
             
             const angleRadians = angleDegrees * (Math.PI / 180);
             
@@ -892,7 +962,18 @@ if (angleValue < 50) {
                             baby.vx = -baby.vx * 0.6; // Bounce with energy loss
                             baby.rotationSpeed *= -1;
                         }
-                    }                }
+                    }
+                    
+                    // Check if baby is within horizontal range
+                    if (baby.x >= zone.x && baby.x <= zone.x + zone.width) {
+                        // Check top wall/edge collision (back wall)
+                        if (baby.y + babyRadius >= zone.y && baby.y - babyRadius < zone.y && baby.vy > 0) {
+                            baby.y = zone.y - babyRadius;
+                            baby.vy = -baby.vy * 0.5; // Bounce off back wall
+                            baby.rotationSpeed *= -1;
+                        }
+                    }
+                }
             }
             
             // Check for landing on ground
