@@ -1,1588 +1,1083 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
-    <title>Yeet the Baby - Flight School Starts Early</title>
-    <style>
-        /* ========================================
-           GLOBAL STYLES & RESET
-           ======================================== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <title>Yeet the Baby — Flight School Starts Early</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
 
-        body {
-            font-family: 'Fredoka', 'Comic Sans', sans-serif;
-            overflow: hidden;
-            background: #E8D5F2;
-            width: 100vw;
-            height: 100vh;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
+  <style>
+    /* =========================
+       RESET & THEME
+       ========================= */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: 'Fredoka', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: #E8D5F2;
+      color: #111;
+      -webkit-tap-highlight-color: transparent;
+      overflow: hidden; /* game controls internal scroll/fit */
+    }
 
-        /* Game container wrapper */
-        #gameContainer {
-            width: 100%;
-            height: 100%;
-            max-width: 600px;
-            max-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background: #E8D5F2;
-            box-shadow: 0 0 30px rgba(0,0,0,0.3);
-            position: relative;
-            overflow: hidden;
-        }
+    :root{
+      /* will be set by JS to the visible viewport height */
+      --vh: 1vh;
 
-        @media (min-width: 768px) {
-            #gameContainer {
-                max-height: 95vh;
-                aspect-ratio: 9 / 16;
-                height: auto;
-            }
-        }
+      /* scale variables for responsive sizing */
+      --max-app-width: 720px;      /* cap so desktop doesn’t grow forever */
+      --ui-gap: clamp(8px, 2vmin, 16px);
+      --radius: 16px;
+      --shadow: 0 8px 24px rgba(0,0,0,0.25);
 
-        /* ========================================
-           GAME CANVAS & BACKGROUND
-           ======================================== */
-        #gameArea {
-            flex: 1;
-            position: relative;
-            background: linear-gradient(180deg, #87CEEB 0%, #FFB6C1 100%);
-            overflow: hidden;
-            border-bottom: 5px solid #333;
-        }
+      /* typography scales */
+      --title-size: clamp(28px, 6.5vw, 54px);
+      --tagline-size: clamp(14px, 3.5vw, 22px);
+      --label-size: clamp(12px, 3vw, 18px);
+      --btn-size: clamp(16px, 4.5vw, 22px);
 
-        #gameCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
+      /* safe area for iOS */
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-top: env(safe-area-inset-top, 0px);
 
-        /* Control area at bottom */
-        #controlArea {
-            height: 180px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            padding: 20px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
-        }
+      /* brand colors */
+      --brand-1: #667eea;
+      --brand-2: #764ba2;
+      --accent-1: #FF6B9D;
+      --accent-2: #C06C84;
+      --mint-1: #4ECDC4;
+      --mint-2: #44A08D;
+    }
 
-        /* Decorative clouds */
-        .cloud {
-            position: absolute;
-            background: white;
-            border-radius: 100px;
-            opacity: 0.8;
-            animation: float 20s infinite ease-in-out;
-        }
+    /* =========================
+       APP LAYOUT
+       ========================= */
+    #app {
+      width: 100%;
+      height: calc(var(--vh) * 100);
+      display: grid;
+      grid-template-rows: 1fr minmax(110px, 24vh);
+      place-items: stretch;
+      max-width: var(--max-app-width);
+      margin: 0 auto;
+      background: #E8D5F2;
+      box-shadow: var(--shadow);
+      position: relative;
+      padding-bottom: var(--safe-bottom);
+      padding-top: var(--safe-top);
+    }
 
-        @keyframes float {
-            0%, 100% { transform: translateX(0) translateY(0); }
-            50% { transform: translateX(30px) translateY(-10px); }
-        }
+    /* Game Area (Canvas sits here) */
+    #gameArea {
+      position: relative;
+      background: linear-gradient(180deg, #87CEEB 0%, #FFB6C1 100%);
+      overflow: hidden;
+      border-bottom: 4px solid #2b2b2b;
+    }
 
-        /* ========================================
-           UI ELEMENTS
-           ======================================== */
-        #ui {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 100;
-            color: white;
-            text-shadow: 3px 3px 0 rgba(0,0,0,0.5);
-            font-size: 24px;
-            font-weight: bold;
-        }
+    canvas#gameCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: manipulation;
+    }
 
-        #score {
-            background: linear-gradient(135deg, #FF6B9D 0%, #C06C84 100%);
-            padding: 10px 20px;
-            border-radius: 15px;
-            border: 4px solid white;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.3);
-            margin-bottom: 10px;
-        }
+    /* Top-left HUD */
+    #ui {
+      position: absolute;
+      top: calc(12px + var(--safe-top));
+      left: 12px;
+      z-index: 10;
+      color: #fff;
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.35);
+      display: grid;
+      gap: 8px;
+      font-weight: 700;
+      font-size: clamp(12px, 3.2vw, 18px);
+    }
 
-        #distance {
-            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
-            padding: 10px 20px;
-            border-radius: 15px;
-            border: 4px solid white;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.3);
-        }
+    .hud-badge {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 3px solid #fff;
+      box-shadow: 0 3px 0 rgba(0,0,0,0.25);
+    }
+    #score { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); }
+    #distance { background: linear-gradient(135deg, var(--mint-1), var(--mint-2)); }
 
-        /* ========================================
-           YEET SCALE MECHANIC - IN CONTROL AREA
-           ======================================== */
-        #yeetScale {
-            flex: 1;
-            max-width: 600px;
-            background: rgba(255,255,255,0.95);
-            border: 5px solid #FF1493;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 8px 0 rgba(0,0,0,0.3);
-        }
+    /* Audio and Restart buttons (top-right) */
+    .top-actions {
+      position: absolute;
+      top: calc(12px + var(--safe-top));
+      right: 12px;
+      display: flex;
+      gap: 10px;
+      z-index: 12;
+    }
 
-        #yeetBtn {
-            background: linear-gradient(135deg, #FF6B9D 0%, #C06C84 100%);
-            color: white;
-            border: 5px solid white;
-            border-radius: 20px;
-            padding: 30px 60px;
-            font-size: 36px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 8px 0 rgba(0,0,0,0.3);
-            transition: all 0.1s;
-            font-family: 'Fredoka', sans-serif;
-            text-shadow: 3px 3px 0 rgba(0,0,0,0.3);
-            margin-left: 20px;
-        }
+    .chip {
+      background: rgba(255,255,255,0.9);
+      border: 2px solid var(--accent-1);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: clamp(12px, 3vw, 16px);
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+      transition: transform 0.08s ease;
+    }
+    .chip:active { transform: translateY(1px); }
 
-        #yeetBtn:hover:not(:disabled) {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 0 rgba(0,0,0,0.3);
-        }
+    /* Caption popup (center) */
+    #caption {
+      position: absolute;
+      inset: 50% auto auto 50%;
+      transform: translate(-50%, -50%) scale(0.5);
+      background: #fff;
+      color: var(--accent-1);
+      border: 6px solid var(--accent-1);
+      border-radius: 20px;
+      padding: clamp(10px, 3.5vw, 22px) clamp(14px, 4.5vw, 28px);
+      font-size: clamp(16px, 5vw, 28px);
+      font-weight: 800;
+      text-align: center;
+      box-shadow: 0 8px 0 rgba(0,0,0,0.25);
+      z-index: 20;
+      pointer-events: none;
+      opacity: 0;
+      max-width: 90%;
+      white-space: nowrap;
+    }
+    #caption.show {
+      animation: captionPop 1.8s cubic-bezier(0.68,-0.55,0.265,1.55);
+    }
+    @keyframes captionPop {
+      0%   { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+      12%  { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+      22%  { transform: translate(-50%, -50%) scale(1); }
+      80%  { opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
+    }
 
-        #yeetBtn:active:not(:disabled) {
-            transform: translateY(4px);
-            box-shadow: 0 4px 0 rgba(0,0,0,0.3);
-        }
+    /* Start Screen (overlay) */
+    #startScreen {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+      display: grid;
+      place-items: center;
+      z-index: 30;
+      padding: 24px;
+    }
+    .start-wrap {
+      display: grid;
+      gap: 18px;
+      place-items: center;
+      text-align: center;
+      color: #fff;
+    }
+    .game-title {
+      font-size: var(--title-size);
+      font-weight: 800;
+      text-shadow: 6px 6px 0 rgba(0,0,0,0.25);
+      letter-spacing: 0.5px;
+    }
+    .game-tagline {
+      font-size: var(--tagline-size);
+      color: #FFD700;
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.25);
+      font-style: italic;
+    }
+    .btn {
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      color: #fff;
+      border: 4px solid #fff;
+      border-radius: 16px;
+      font-weight: 800;
+      font-size: var(--btn-size);
+      padding: clamp(10px, 3.2vw, 16px) clamp(18px, 6vw, 28px);
+      cursor: pointer;
+      box-shadow: 0 6px 0 rgba(0,0,0,0.3);
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
+      user-select: none;
+    }
+    .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.3); }
+    .credits {
+      margin-top: 8px;
+      font-size: clamp(12px, 3vw, 16px);
+      opacity: 0.9;
+    }
 
-        #yeetBtn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+    /* Control Area */
+    #controlArea {
+      background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: var(--ui-gap);
+      padding: clamp(8px, 2.5vmin, 16px);
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.25);
+    }
+    @media (max-width: 560px) {
+      #controlArea {
+        grid-template-columns: 1fr;
+      }
+    }
 
-        .scale-title {
-            text-align: center;
-            font-size: 28px;
-            color: #FF1493;
-            margin-bottom: 15px;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
-        }
+    #yeetScale {
+      background: rgba(255,255,255,0.95);
+      border: 4px solid var(--accent-1);
+      border-radius: var(--radius);
+      padding: clamp(8px, 2.5vmin, 16px);
+      box-shadow: 0 6px 0 rgba(0,0,0,0.25);
+      display: grid;
+      gap: 8px;
+    }
+    .scale-title {
+      text-align: center;
+      color: var(--accent-1);
+      font-weight: 800;
+      font-size: clamp(14px, 3.8vw, 20px);
+    }
+    .bar-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: clamp(10px, 2.8vw, 13px);
+      font-weight: 700;
+      color: var(--accent-1);
+    }
+    .scale-bar, .angle-bar {
+      width: 100%;
+      height: clamp(22px, 5.5vmin, 34px);
+      border-radius: 999px;
+      position: relative;
+      overflow: hidden;
+      border: 3px solid var(--accent-1);
+      background: linear-gradient(90deg, #FFB6C1 0%, #FF69B4 50%, #FF1493 100%);
+    }
+    .angle-bar {
+      border-color: var(--mint-1);
+      background: linear-gradient(90deg, var(--mint-1) 0%, #fff 50%, var(--accent-1) 100%);
+    }
+    .indicator {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 8px;
+      height: 100%;
+      background: #fff;
+      box-shadow: 0 0 10px rgba(255,255,255,0.9), 0 0 20px var(--accent-1);
+    }
+    .angle-bar .indicator { box-shadow: 0 0 10px rgba(255,255,255,0.9), 0 0 20px var(--mint-1); }
+    .scale-note {
+      text-align: center;
+      font-size: clamp(11px, 3vw, 14px);
+      color: #555;
+    }
 
-        .scale-bar {
-            width: 100%;
-            height: 40px;
-            background: linear-gradient(90deg, #FFB6C1 0%, #FF69B4 50%, #FF1493 100%);
-            border-radius: 20px;
-            position: relative;
-            overflow: hidden;
-            border: 3px solid #FF1493;
-            margin-bottom: 10px;
-        }
+    #yeetBtn {
+      justify-self: stretch;
+      align-self: stretch;
+      min-height: clamp(44px, 8.5vh, 70px);
+    }
 
-        .scale-indicator {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 8px;
-            height: 100%;
-            background: white;
-            box-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px #FF1493;
-        }
+    /* CPS Overlay (fail state) */
+    #cpsOverlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(200,0,0,0.95);
+      display: none;
+      z-index: 25;
+      padding: 24px;
+      color: #fff;
+    }
+    #cpsOverlay.active { display: grid; place-items: center; }
+    .cps-wrap { display: grid; gap: 14px; place-items: center; text-align: center; }
+    .cps-title {
+      font-size: clamp(22px, 6vw, 36px);
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      text-shadow: 3px 3px 0 rgba(0,0,0,0.35);
+    }
+    .cps-subtitle {
+      font-size: clamp(14px, 3.8vw, 20px);
+      opacity: 0.95;
+    }
+    .cps-stats {
+      background: rgba(255,255,255,0.18);
+      padding: clamp(10px, 3.2vw, 16px) clamp(14px, 4.2vw, 22px);
+      border-radius: 12px;
+      display: grid;
+      gap: 6px;
+      font-size: clamp(14px, 3.8vw, 18px);
+      font-weight: 700;
+      min-width: 60%;
+    }
 
-        .scale-bar-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: #FF1493;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
+    /* Orientation lock overlay (portrait only) */
+    #rotateOverlay {
+      position: fixed;
+      inset: 0;
+      background: #0f0f12;
+      color: #fff;
+      display: none;
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+    }
+    #rotateOverlay.show { display: flex; }
+    .rotate-msg {
+      display: grid;
+      gap: 10px;
+      font-size: clamp(16px, 4.5vw, 22px);
+      font-weight: 800;
+    }
 
-        #angleBar {
-            display: none;
-        }
-
-        #angleBar.active {
-            display: block;
-        }
-
-        .angle-bar {
-            width: 100%;
-            height: 40px;
-            background: linear-gradient(90deg, #4ECDC4 0%, #FFF 50%, #FF6B9D 100%);
-            border-radius: 20px;
-            position: relative;
-            overflow: hidden;
-            border: 3px solid #4ECDC4;
-            margin-bottom: 10px;
-        }
-
-        .angle-bar-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: #4ECDC4;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .scale-label {
-            text-align: center;
-            font-size: 16px;
-            color: #FF1493;
-            font-weight: bold;
-        }
-
-        .scale-instruction {
-            text-align: center;
-            font-size: 14px;
-            color: #666;
-            margin-top: 10px;
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* ========================================
-           MEME CAPTIONS & OVERLAYS
-           ======================================== */
-        #caption {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            background: white;
-            padding: 30px 50px;
-            border: 8px solid #FF1493;
-            border-radius: 25px;
-            font-size: 48px;
-            font-weight: bold;
-            color: #FF1493;
-            text-shadow: 3px 3px 0 rgba(0,0,0,0.2);
-            z-index: 300;
-            box-shadow: 0 10px 0 rgba(0,0,0,0.3);
-            pointer-events: none;
-            white-space: nowrap;
-        }
-
-        #caption.show {
-            animation: captionPop 2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-
-        @keyframes captionPop {
-            0% { transform: translate(-50%, -50%) scale(0) rotate(-10deg); }
-            10% { transform: translate(-50%, -50%) scale(1.2) rotate(5deg); }
-            20% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
-            80% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(0) rotate(10deg); opacity: 0; }
-        }
-
-        /* ========================================
-           CPS OVERLAY (FAIL STATE)
-           ======================================== */
-        #cpsOverlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,0,0,0.95);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            z-index: 400;
-            animation: sirenFlash 0.5s infinite;
-        }
-
-        @keyframes sirenFlash {
-            0%, 100% { background: rgba(255,0,0,0.95); }
-            50% { background: rgba(200,0,0,0.95); }
-        }
-
-        #cpsOverlay.active {
-            display: flex;
-        }
-
-        .cps-title {
-            font-size: 72px;
-            color: white;
-            text-shadow: 4px 4px 0 rgba(0,0,0,0.5);
-            margin-bottom: 20px;
-            animation: shake 0.3s infinite;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
-        }
-
-        .cps-subtitle {
-            font-size: 36px;
-            color: white;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
-            margin-bottom: 30px;
-        }
-
-        .cps-stats {
-            background: rgba(255,255,255,0.2);
-            padding: 20px 40px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            font-size: 28px;
-            color: white;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
-        }
-
-        .cps-stats div {
-            margin: 10px 0;
-        }
-
-        /* ========================================
-           BUTTONS
-           ======================================== */
-        .btn {
-            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
-            color: white;
-            border: 4px solid white;
-            border-radius: 15px;
-            padding: 15px 40px;
-            font-size: 24px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 6px 0 rgba(0,0,0,0.3);
-            transition: all 0.1s;
-            font-family: 'Fredoka', sans-serif;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 0 rgba(0,0,0,0.3);
-        }
-
-        .btn:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0 rgba(0,0,0,0.3);
-        }
-
-        #restartBtn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 150;
-        }
-
-        /* ========================================
-           START SCREEN
-           ======================================== */
-        #startScreen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            z-index: 500;
-            padding: 20px;
-        }
-
-        .game-title {
-    font-size: 72px;
-    color: white;
-    text-shadow: 6px 6px 0 rgba(0,0,0,0.3);
-    margin-bottom: 20px;
-    animation: titleBounce 2s infinite;
-    white-space: nowrap;
-    text-align: center;
-    font-family: 'Fredoka', 'Comic Sans', 'sans-serif';
-}
-
-        @keyframes titleBounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-
-        .game-tagline {
-            font-size: 24px;
-            color: #FFD700;
-            text-shadow: 3px 3px 0 rgba(0,0,0,0.3);
-            margin-bottom: 40px;
-            font-style: italic;
-            text-align: center;
-            white-space: nowrap;
-        }
-
-        #startBtn {
-            background: linear-gradient(135deg, #FF6B9D 0%, #C06C84 100%);
-            font-size: 32px;
-            padding: 20px 50px;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .credits {
-            position: absolute;
-            bottom: 20px;
-            color: white;
-            font-size: 18px;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
-        }
-
-        /* ========================================
-           MOBILE RESPONSIVENESS
-           ======================================== */
-        @media (max-width: 768px) {
-            .game-title { 
-                font-size: 36px;
-                margin-bottom: 15px;
-            }
-            .game-tagline { 
-                font-size: 16px;
-                margin-bottom: 30px;
-            }
-            #startBtn { 
-                font-size: 20px;
-                padding: 15px 35px;
-            }
-            
-            #controlArea {
-                height: 160px;
-                flex-direction: column;
-                padding: 10px;
-            }
-            
-            #yeetScale { 
-                width: 100%;
-                max-width: none;
-                margin-bottom: 10px;
-                padding: 12px;
-            }
-            
-            #yeetBtn {
-                margin-left: 0;
-                width: 100%;
-                padding: 15px 30px;
-                font-size: 22px;
-            }
-            
-            .scale-title { font-size: 16px; }
-            .scale-bar-labels, .angle-bar-labels { font-size: 10px; }
-            .scale-label { font-size: 14px; }
-            .scale-instruction { font-size: 12px; }
-            #caption { font-size: 20px; padding: 15px 20px; }
-            .cps-title { font-size: 32px; }
-            .cps-subtitle { font-size: 18px; }
-            .cps-stats { font-size: 16px; padding: 12px 20px; }
-            #ui { font-size: 14px; }
-            #score, #distance { padding: 8px 15px; }
-            #restartBtn { font-size: 14px; padding: 8px 18px; }
-            #audioToggle { width: 40px; height: 40px; font-size: 18px; right: 80px; }
-            .credits { font-size: 14px; }
-        }
-
-        @media (min-width: 769px) {
-            .game-title { font-size: 72px; }
-            .game-tagline { font-size: 24px; }
-        }
-
-        /* ========================================
-           AUDIO CONTROLS
-           ======================================== */
-        #audioToggle {
-            position: absolute;
-            top: 20px;
-            right: 100px;
-            z-index: 150;
-            background: rgba(255,255,255,0.9);
-            border: 3px solid #FF1493;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            font-size: 24px;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.3);
-            transition: all 0.1s;
-        }
-
-        #audioToggle:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 0 rgba(0,0,0,0.3);
-        }
-
-        #audioToggle:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0 rgba(0,0,0,0.3);
-        }
-    </style>
+    /* Decorative clouds */
+    .cloud {
+      position: absolute;
+      background: #fff;
+      border-radius: 100px;
+      opacity: 0.75;
+      animation: float 20s infinite ease-in-out;
+      filter: drop-shadow(0 6px 6px rgba(0,0,0,0.12));
+      z-index: 1;
+    }
+    @keyframes float {
+      0%,100% { transform: translate(0,0); }
+      50% { transform: translate(22px, -10px); }
+    }
+  </style>
 </head>
 <body>
-    <!-- Game Container (for responsive scaling) -->
-    <div id="gameContainer">
-        <!-- Start Screen -->
-        <div id="startScreen">
-            <div class="game-title">🚼 YEET THE BABY 🚼</div>
-            <div class="game-tagline">"Flight School Starts Early"</div>
-            <button id="startBtn" class="btn">START YEETING</button>
-            <div class="credits">Neon Bread Studios © 2025</div>
+  <div id="rotateOverlay">
+    <div class="rotate-msg">
+      <div>Best played in portrait.</div>
+      <div>Please rotate your device upright.</div>
+    </div>
+  </div>
+
+  <div id="app">
+    <!-- GAME AREA -->
+    <div id="gameArea">
+      <!-- clouds -->
+      <div class="cloud" style="top: 8%; left: 8%; width: 92px; height: 46px;"></div>
+      <div class="cloud" style="top: 20%; left: 72%; width: 112px; height: 56px; animation-delay: -5s;"></div>
+      <div class="cloud" style="top: 48%; left: 28%; width: 84px; height: 42px; animation-delay: -10s;"></div>
+      <div class="cloud" style="top: 70%; left: 80%; width: 106px; height: 53px; animation-delay: -15s;"></div>
+
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- HUD -->
+      <div id="ui">
+        <div id="score" class="hud-badge">YEET SCORE: <span id="scoreValue">0</span></div>
+        <div id="distance" class="hud-badge">DISTANCE: <span id="distanceValue">0</span> ft</div>
+      </div>
+
+      <!-- Top-right actions -->
+      <div class="top-actions">
+        <button id="audioToggle" class="chip" title="Toggle Music">Sound</button>
+        <button id="restartBtn" class="chip" title="Restart">Restart</button>
+      </div>
+
+      <!-- Caption -->
+      <div id="caption"></div>
+
+      <!-- CPS fail overlay -->
+      <div id="cpsOverlay">
+        <div class="cps-wrap">
+          <div class="cps-title">CPS IS HERE</div>
+          <div class="cps-subtitle">That was not a safe landing.</div>
+          <div class="cps-stats">
+            <div>Final Score: <span id="cpsScore">0</span></div>
+            <div>Total Distance: <span id="cpsDistance">0</span> ft</div>
+          </div>
+          <button class="btn" id="cpsTryAgain">Try Again</button>
         </div>
+      </div>
 
-        <!-- Game Area (top) -->
-        <div id="gameArea">
-        <!-- Background Clouds -->
-        <div class="cloud" style="top: 10%; left: 10%; width: 100px; height: 50px;"></div>
-        <div class="cloud" style="top: 20%; left: 70%; width: 120px; height: 60px; animation-delay: -5s;"></div>
-        <div class="cloud" style="top: 50%; left: 30%; width: 90px; height: 45px; animation-delay: -10s;"></div>
-        <div class="cloud" style="top: 70%; left: 80%; width: 110px; height: 55px; animation-delay: -15s;"></div>
-
-        <!-- Game Canvas -->
-        <canvas id="gameCanvas"></canvas>
-
-        <!-- UI Elements -->
-        <div id="ui">
-            <div id="score">YEET SCORE: <span id="scoreValue">0</span></div>
-            <div id="distance">DISTANCE: <span id="distanceValue">0</span>ft</div>
+      <!-- Start screen -->
+      <div id="startScreen">
+        <div class="start-wrap">
+          <div class="game-title">YEET THE BABY</div>
+          <div class="game-tagline">“Flight School Starts Early”</div>
+          <button id="startBtn" class="btn">Start</button>
+          <div class="credits">Neon Bread Studios © 2025</div>
         </div>
-
-        <!-- Audio Toggle -->
-        <div id="audioToggle" title="Toggle Music">🔊</div>
-
-        <!-- Restart Button -->
-        <button id="restartBtn" class="btn" onclick="resetGame()">YEET AGAIN</button>
-
-        <!-- Meme Caption -->
-        <div id="caption"></div>
-
-        <!-- CPS Overlay (Fail State) -->
-        <div id="cpsOverlay">
-            <div class="cps-title">🚨 CPS IS HERE! 🚨</div>
-            <div class="cps-subtitle">That was NOT a safe landing!</div>
-            <div class="cps-stats">
-                <div>FINAL SCORE: <span id="cpsScore">0</span></div>
-                <div>TOTAL DISTANCE: <span id="cpsDistance">0</span>ft</div>
-            </div>
-            <button class="btn" onclick="resetGame()">TRY AGAIN (LEGALLY)</button>
-        </div>
+      </div>
     </div>
 
-    <!-- Control Area (bottom) -->
+    <!-- CONTROLS -->
     <div id="controlArea">
-        <!-- Yeet Scale Mechanic -->
-        <div id="yeetScale">
-            <div class="scale-title" id="scaleTitle">⚡ YEET POWER ⚡</div>
-            
-            <!-- Power Bar (Phase 1) -->
-            <div id="powerBar">
-                <div class="scale-bar-labels">
-                    <span>WEAK</span>
-                    <span>MEDIUM</span>
-                    <span>STRONG</span>
-                </div>
-                <div class="scale-bar">
-                    <div class="scale-indicator" id="powerIndicator"></div>
-                </div>
-            </div>
-            
-            <!-- Angle Bar (Phase 2) -->
-            <div id="angleBar">
-                <div class="angle-bar-labels">
-                    <span>⬇️ DOWN</span>
-                    <span>➡️ STRAIGHT</span>
-                    <span>⬆️ UP</span>
-                </div>
-                <div class="angle-bar">
-                    <div class="scale-indicator" id="angleIndicator"></div>
-                </div>
-            </div>
-            
-            <div class="scale-label" id="powerLabel">CLICK YEET FOR POWER!</div>
-            <div class="scale-instruction">⬆️ Time your clicks carefully! ⬆️</div>
+      <div id="yeetScale">
+        <div class="scale-title" id="scaleTitle">Yeet Power</div>
+
+        <div id="powerBar">
+          <div class="bar-labels"><span>Weak</span><span>Medium</span><span>Strong</span></div>
+          <div class="scale-bar"><div id="powerIndicator" class="indicator"></div></div>
         </div>
 
-        <!-- Yeet Button -->
-        <button id="yeetBtn" class="btn">YEET!</button>
+        <div id="angleBar" style="display:none;">
+          <div class="bar-labels" style="color:var(--mint-1)"><span>Down</span><span>Straight</span><span>Up</span></div>
+          <div class="angle-bar"><div id="angleIndicator" class="indicator"></div></div>
+        </div>
+
+        <div id="powerLabel" class="scale-note">Tap once to lock power, again to lock angle.</div>
+      </div>
+
+      <button id="yeetBtn" class="btn">YEET</button>
     </div>
-    </div>
-    <!-- End Game Container -->
+  </div>
 
-    <!-- Background Music -->
-    <audio id="bgMusic" loop>
-        <source src="retro-8bit-happy-videogame-music-246631.mp3" type="audio/mpeg">
-    </audio>
+  <!-- Audio -->
+  <audio id="bgMusic" preload="auto" loop>
+    <source src="retro-8bit-happy-videogame-music-246631.mp3" type="audio/mpeg" />
+  </audio>
 
-    <script>
-        // ========================================
-        // GAME STATE & CONFIGURATION
-        // ========================================
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        // Set canvas size
-        function resizeCanvas() {
-            const gameArea = document.getElementById('gameArea');
-            canvas.width = gameArea.clientWidth;
-            canvas.height = gameArea.clientHeight;
-            
-            // Update landing zones based on canvas size
-            updateLandingZonePositions();
-            
-            // Update parent position
-            parent.y = canvas.height - 150;
-            if (baby && !baby.flying) {
-                baby.x = parent.x + 40;
-                baby.y = parent.y;
-            }
-        }
-        
-        function updateLandingZonePositions() {
-            // Scale landing zones based on canvas width
-            const baseWidth = 1200; // Design width
-            const scale = canvas.width / baseWidth;
-            const groundY = canvas.height - 120;
-            
-            // Pool
-            landingZones[0].x = 400 * scale;
-            landingZones[0].y = groundY - 30;
-            landingZones[0].width = 120 * scale;
-            landingZones[0].height = 60;
-            
-            // Crib
-            landingZones[1].x = 650 * scale;
-            landingZones[1].y = groundY - 30;
-            landingZones[1].width = 140 * scale;
-            landingZones[1].height = 70;
-            
-            // Bear
-            landingZones[2].x = 950 * scale;
-            landingZones[2].y = groundY - 80;
-            landingZones[2].width = 150 * scale;
-            landingZones[2].height = 120;
-        }
-        
-        
-
-        // Game state
-        let gameState = 'start'; // 'start', 'aiming', 'flying', 'landed'
-        let score = 0;
-        let totalDistance = 0;
-        let yeetPhase = 'power'; // 'power' or 'angle'
-        let powerValue = 0;
-        let angleValue = 0;
-        let audioEnabled = true;
-
-        
-
-        // Landing zones (targets)
-        let landingZones = [
-            {
-                x: 400,
-                y: canvas.height - 150,
-                width: 120,
-                height: 60,
-                type: 'pool',
-                name: 'POOL',
-                multiplier: 2,
-                color: '#4ECDC4',
-                hasWalls: true,
-                wallThickness: 8
-            },
-            {
-                x: 650,
-                y: canvas.height - 150,
-                width: 140,
-                height: 70,
-                type: 'crib',
-                name: 'CRIB',
-                multiplier: 5,
-                color: '#FFB6C1',
-                hasWalls: true,
-                wallThickness: 6
-            },
-            {
-                x: 950,
-                y: canvas.height - 200,
-                width: 150,
-                height: 120,
-                type: 'bear',
-                name: 'BEAR',
-                multiplier: -1, // Instant fail
-                color: '#8B4513',
-                hasWalls: false
-            }
-        ];
-
-        
-
-// Parent (thrower) position
-        const parent = {
-            x: 100,
-            y: canvas.height - 150,
-            width: 60,
-            height: 80
-        };
-
-        // Baby physics
-        let baby = {
-            x: parent.x + 40,
-            y: parent.y,
-            vx: 0,
-            vy: 0,
-            rotation: 0,
-            rotationSpeed: 0,
-            size: 30,
-            flying: false
-        };
-
-resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-
-        // Random events
-        let randomEvent = null;
-        let eventDuration = 0;
-
-        // Meme captions for different situations
-        const launchCaptions = [
-            "CERTIFIED YEET TECHNICIAN! 🎯",
-            "PARENTING LEVEL: EXPERT 👶",
-            "SEND IT! 🚀",
-            "WEEEEE! 🎢",
-            "NASA CALLED 📞",
-            "TO THE MOON! 🌙",
-            "BIG YEET ENERGY ⚡"
-        ];
-
-        const landingCaptions = [
-            "BUTTER SMOOTH! 🧈",
-            "10/10 LANDING ✨",
-            "STYLE POINTS! 💯",
-            "SAFE AND SOUND 🛡️",
-            "DIAPER INTACT ✅",
-            "PERFECT FORM 🎨",
-            "NAILED IT! 🎯"
-        ];
-
-        const bonusCaptions = [
-            "DIAPER DETONATION BONUS! 💥",
-            "HELICOPTER MOM AVOIDED! 🚁",
-            "WIND RESISTANCE MASTERED! 🌪️",
-            "GIGGLE MULTIPLIER! 😂",
-            "EXTREME DISTANCE! 📏",
-            "PHYSICS DEFIED! 🔬"
-        ];
-
-        const failCaptions = [
-            "YIKES... 😬",
-            "NOT IDEAL... 🙈",
-            "LEARNING EXPERIENCE! 📚",
-            "ROOKIE MISTAKE 🤷",
-            "OOPSIE DAISY 🌼"
-        ];
-
-        // ========================================
-        // AUDIO MANAGEMENT
-        // ========================================
-        const bgMusic = document.getElementById('bgMusic');
-        const audioToggle = document.getElementById('audioToggle');
-
-        audioToggle.addEventListener('click', () => {
-            audioEnabled = !audioEnabled;
-            if (audioEnabled) {
-                bgMusic.play().catch(e => {
-                    console.log('Audio playback prevented:', e);
-                    audioEnabled = false;
-                    audioToggle.textContent = '🔇';
-                });
-                audioToggle.textContent = '🔊';
-            } else {
-                bgMusic.pause();
-                audioToggle.textContent = '🔇';
-            }
-        });
-
-        // ========================================
-        // ========================================
-// START GAME
-// ========================================
-window.addEventListener('DOMContentLoaded', () => {
-    const startBtn = document.getElementById('startBtn');
-    if (startBtn) {
-        startBtn.addEventListener('click', () => {
-            document.getElementById('startScreen').style.display = 'none';
-            gameState = 'ready';
-            if (audioEnabled) {
-                bgMusic.play().catch(e => console.log('Audio autoplay prevented'));
-            }
-            animatePowerIndicator();
-            gameLoop();
-        });
+  <script>
+    /* =========================
+       VIEWPORT & ORIENTATION
+       ========================= */
+    function setVh() {
+      document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
     }
-});
+    setVh();
+    window.addEventListener('resize', setVh);
+    window.addEventListener('orientationchange', setVh);
 
-        // ========================================
-        // YEET SCALE MECHANIC
-        // ========================================
-        let scaleAnimationId = null;
-        let powerIndicatorPosition = 0;
-        let angleIndicatorPosition = 0;
-        let indicatorDirection = 1;
+    const rotateOverlay = document.getElementById('rotateOverlay');
+    function enforcePortrait() {
+  const isLandscape = window.innerWidth > window.innerHeight;
+  const isMobile = window.innerWidth < 900; // treat screens narrower than 900px as mobile/tablet
 
-        function animatePowerIndicator() {
-            const indicator = document.getElementById('powerIndicator');
-            
-            function animate() {
-                powerIndicatorPosition += indicatorDirection * 2;
-                
-                if (powerIndicatorPosition >= 100) {
-                    powerIndicatorPosition = 100;
-                    indicatorDirection = -1;
-                } else if (powerIndicatorPosition <= 0) {
-                    powerIndicatorPosition = 0;
-                    indicatorDirection = 1;
-                }
-                
-                indicator.style.left = powerIndicatorPosition + '%';
-                scaleAnimationId = requestAnimationFrame(animate);
-            }
-            
-            animate();
+  // Only show overlay if landscape AND it's a mobile-sized device
+  rotateOverlay.classList.toggle('show', isMobile && isLandscape);
+}
+
+    enforcePortrait();
+    window.addEventListener('resize', enforcePortrait);
+    window.addEventListener('orientationchange', enforcePortrait);
+
+    /* =========================
+       GAME STATE & ELEMENTS
+       ========================= */
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d', { alpha: true });
+
+    const startScreen = document.getElementById('startScreen');
+    const startBtn = document.getElementById('startBtn');
+    const yeetBtn = document.getElementById('yeetBtn');
+    const powerIndicator = document.getElementById('powerIndicator');
+    const angleIndicator = document.getElementById('angleIndicator');
+    const powerBar = document.getElementById('powerBar');
+    const angleBar = document.getElementById('angleBar');
+    const scaleTitle = document.getElementById('scaleTitle');
+    const powerLabel = document.getElementById('powerLabel');
+    const captionEl = document.getElementById('caption');
+
+    const bgMusic = document.getElementById('bgMusic');
+    const audioToggle = document.getElementById('audioToggle');
+    const restartBtn = document.getElementById('restartBtn');
+    const cpsOverlay = document.getElementById('cpsOverlay');
+    const cpsTryAgain = document.getElementById('cpsTryAgain');
+
+    const scoreValue = document.getElementById('scoreValue');
+    const distanceValue = document.getElementById('distanceValue');
+    const cpsScore = document.getElementById('cpsScore');
+    const cpsDistance = document.getElementById('cpsDistance');
+
+    let gameState = 'start'; // start, ready, aiming, flying, cps
+    let score = 0;
+    let totalDistance = 0;
+    let yeetPhase = 'power';
+    let powerValue = 0;
+    let angleValue = 50;
+
+    let audioEnabled = true;
+
+    // world objects
+    const parent = { x: 100, y: 0, width: 60, height: 80 };
+    let baby = {
+      x: 0, y: 0, vx: 0, vy: 0,
+      rotation: 0, rotationSpeed: 0, size: 30, flying: false
+    };
+
+    // landing zones (scaled in updateLandingZones)
+    let landingZones = [
+      { x: 400, y: 0, width: 120, height: 60, type: 'pool', name: 'POOL', multiplier: 2, color: '#4ECDC4', hasWalls: true, wallThickness: 8 },
+      { x: 650, y: 0, width: 140, height: 70, type: 'crib', name: 'CRIB', multiplier: 5, color: '#FFB6C1', hasWalls: true, wallThickness: 6 },
+      { x: 950, y: 0, width: 150, height: 120, type: 'bear', name: 'BEAR', multiplier: -1, color: '#8B4513', hasWalls: false }
+    ];
+
+    /* =========================
+       RESPONSIVE CANVAS
+       ========================= */
+    function resizeCanvas() {
+      const area = document.getElementById('gameArea');
+      const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+
+      const cssW = area.clientWidth;
+      const cssH = area.clientHeight;
+
+      // set backing store size
+      canvas.width = Math.floor(cssW * dpr);
+      canvas.height = Math.floor(cssH * dpr);
+
+      // set CSS size
+      canvas.style.width = cssW + 'px';
+      canvas.style.height = cssH + 'px';
+
+      // reset transform and scale drawing operations to CSS pixels
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      // update world positions based on CSS pixels
+      updateLandingZonePositions(cssW, cssH);
+
+      parent.y = cssH - 150;
+      if (!baby.flying) {
+        baby.x = parent.x + 40;
+        baby.y = parent.y;
+      }
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function updateLandingZonePositions(w, h) {
+      const baseWidth = 1200;
+      const scale = w / baseWidth;
+      const groundY = h - 120;
+
+      landingZones[0].x = 400 * scale;
+      landingZones[0].y = groundY - 30;
+      landingZones[0].width = 120 * scale;
+      landingZones[0].height = 60;
+
+      landingZones[1].x = 650 * scale;
+      landingZones[1].y = groundY - 30;
+      landingZones[1].width = 140 * scale;
+      landingZones[1].height = 70;
+
+      landingZones[2].x = 950 * scale;
+      landingZones[2].y = groundY - 80;
+      landingZones[2].width = 150 * scale;
+      landingZones[2].height = 120;
+    }
+
+    /* =========================
+       AUDIO
+       ========================= */
+    function setAudioUi() {
+      audioToggle.textContent = audioEnabled ? 'Sound: On' : 'Sound: Off';
+    }
+    setAudioUi();
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      if (!audioEnabled) bgMusic.pause();
+      else bgMusic.play().catch(()=>{ /* autoplay block ignored */ });
+      setAudioUi();
+    }
+
+    audioToggle.addEventListener('pointerdown', (e)=>{ e.preventDefault(); toggleAudio(); }, {passive:true});
+
+    /* =========================
+       START / RESTART
+       ========================= */
+    startBtn.addEventListener('pointerdown', (e)=>{
+      e.preventDefault();
+      startScreen.style.display = 'none';
+      gameState = 'ready';
+      if (audioEnabled) bgMusic.play().catch(()=>{});
+      startPowerAnim();
+      requestAnimationFrame(gameLoop);
+    }, {passive:true});
+
+    restartBtn.addEventListener('pointerdown', (e)=>{ e.preventDefault(); resetGame(); }, {passive:true});
+    cpsTryAgain.addEventListener('pointerdown', (e)=>{ e.preventDefault(); resetGame(); }, {passive:true});
+
+    /* =========================
+       POWER & ANGLE INDICATORS
+       ========================= */
+    let rafId = null;
+    let indicatorDir = 1;
+    let powerPos = 0;
+    let anglePos = 0;
+
+    function startPowerAnim(){
+      cancelAnimationFrame(rafId);
+      indicatorDir = 1;
+      powerPos = 0;
+      powerBar.style.display = 'block';
+      angleBar.style.display = 'none';
+      scaleTitle.textContent = 'Yeet Power';
+      animatePower();
+    }
+
+    function animatePower(){
+      powerPos += indicatorDir * 2;
+      if (powerPos >= 100) { powerPos = 100; indicatorDir = -1; }
+      if (powerPos <= 0)   { powerPos = 0;   indicatorDir = 1; }
+      powerIndicator.style.left = powerPos + '%';
+      rafId = requestAnimationFrame(animatePower);
+    }
+
+    function startAngleAnim(){
+      cancelAnimationFrame(rafId);
+      indicatorDir = 1;
+      anglePos = 0;
+      powerBar.style.display = 'none';
+      angleBar.style.display = 'block';
+      scaleTitle.textContent = 'Yeet Angle';
+      animateAngle();
+    }
+
+    function animateAngle(){
+      anglePos += indicatorDir * 2;
+      if (anglePos >= 100) { anglePos = 100; indicatorDir = -1; }
+      if (anglePos <= 0)   { anglePos = 0;   indicatorDir = 1; }
+      angleIndicator.style.left = anglePos + '%';
+      rafId = requestAnimationFrame(animateAngle);
+    }
+
+    function handleYeetPress(){
+      if (gameState === 'ready') {
+        powerValue = powerPos;
+        startAngleAnim();
+        gameState = 'aiming';
+        powerLabel.textContent = 'Tap to lock angle.';
+        return;
+      }
+      if (gameState === 'aiming') {
+        angleValue = anglePos;
+        cancelAnimationFrame(rafId);
+        launchBaby();
+      }
+    }
+
+    yeetBtn.addEventListener('pointerdown', (e)=>{ e.preventDefault(); handleYeetPress(); }, {passive:true});
+
+    /* =========================
+       PHYSICS & GAME LOGIC
+       ========================= */
+    let randomEvent = null;
+    let eventDuration = 0;
+
+    function launchBaby(){
+      // power 0..100 -> velocity 8..28
+      const velocity = (powerValue / 100) * 20 + 8;
+
+      // angle bar: 0 up(90°) -> 50 straight(0°) -> 100 down(-90°)
+      let angleDeg = angleValue < 50
+        ? 90 - (angleValue * 1.8)
+        : -(angleValue - 50) * 1.8;
+
+      const angleRad = angleDeg * Math.PI / 180;
+
+      baby.vx = Math.cos(angleRad) * velocity;
+      baby.vy = -Math.sin(angleRad) * velocity;
+      baby.flying = true;
+      baby.rotationSpeed = (Math.random() - 0.5) * 0.3;
+
+      gameState = 'flying';
+      powerLabel.textContent = 'Flying...';
+
+      // 30% random event
+      if (Math.random() < 0.3) triggerRandomEvent();
+    }
+
+    function triggerRandomEvent(){
+      const events = [
+        { type:'wind', name:'Gusty Wind', force:(Math.random()-0.5)*0.5 },
+        { type:'helicopter', name:'Helicopter Mom', force:0 },
+        { type:'explosion', name:'Diaper Detonation', force:0 },
+      ];
+      randomEvent = events[Math.floor(Math.random()*events.length)];
+      eventDuration = 120; // frames
+    }
+
+    function updatePhysics(){
+      if (!baby.flying) return;
+
+      // gravity
+      baby.vy += 0.5;
+
+      // event effect
+      if (randomEvent && randomEvent.type === 'wind') baby.vx += randomEvent.force;
+
+      // integrate
+      baby.x += baby.vx;
+      baby.y += baby.vy;
+      baby.rotation += baby.rotationSpeed;
+
+      // walls of zones
+      for (let zone of landingZones) {
+        if (!zone.hasWalls) continue;
+        const r = baby.size/2;
+
+        // vertical overlap range
+        if (baby.y + r >= zone.y && baby.y - r <= zone.y + zone.height) {
+          // left wall
+          if (baby.x + r >= zone.x && baby.x - r < zone.x && baby.vx > 0) {
+            baby.x = zone.x - r; baby.vx *= -0.6; baby.rotationSpeed *= -1;
+          }
+          // right wall
+          if (baby.x - r <= zone.x + zone.width && baby.x + r > zone.x + zone.width && baby.vx < 0) {
+            baby.x = zone.x + zone.width + r; baby.vx *= -0.6; baby.rotationSpeed *= -1;
+          }
+        }
+        // back/top edge
+        if (baby.x >= zone.x && baby.x <= zone.x + zone.width) {
+          if (baby.y + r >= zone.y && baby.y - r < zone.y && baby.vy > 0) {
+            baby.y = zone.y - r; baby.vy *= -0.5; baby.rotationSpeed *= -1;
+          }
+        }
+      }
+
+      // ground
+      if (baby.y >= canvas.clientHeight - 120) {
+        checkLanding();
+      }
+
+      // off screen
+      if (baby.x < 0 || baby.x > canvas.clientWidth || baby.y > canvas.clientHeight) {
+        triggerCPS();
+      }
+    }
+
+    function checkLanding(){
+      baby.flying = false; baby.vx = 0; baby.vy = 0;
+
+      let landedZone = null;
+      for (let zone of landingZones) {
+        if (baby.x >= zone.x + 10 && baby.x <= zone.x + zone.width - 10 &&
+            baby.y >= zone.y && baby.y <= zone.y + zone.height) {
+          landedZone = zone; break;
+        }
+      }
+
+      if (!landedZone) {
+        showCaption('Rough landing');
+        setTimeout(triggerCPS, 900);
+        return;
+      }
+
+      if (landedZone.type === 'bear') {
+        showCaption('Bear got the baby');
+        setTimeout(triggerCPS, 1100);
+        return;
+      }
+
+      showCaption('Clean landing');
+      const distance = Math.max(0, Math.floor(baby.x - parent.x - 40));
+      const base = distance * landedZone.multiplier;
+      let bonus = Math.floor(Math.abs(baby.rotation) * 10);
+      if (randomEvent) bonus += 500;
+
+      const finalScore = base + bonus;
+      score += finalScore;
+      totalDistance += distance;
+      updateScoreUi();
+
+      setTimeout(resetForNextThrow, 900);
+    }
+
+    function triggerCPS(){
+      gameState = 'cps';
+      cpsScore.textContent = score;
+      cpsDistance.textContent = totalDistance;
+      cpsOverlay.classList.add('active');
+    }
+
+    function showCaption(text){
+      captionEl.textContent = text;
+      captionEl.classList.remove('show'); void captionEl.offsetWidth;
+      captionEl.classList.add('show');
+    }
+
+    function updateScoreUi(){
+      scoreValue.textContent = score;
+      distanceValue.textContent = totalDistance;
+    }
+
+    function resetForNextThrow(){
+      baby.x = parent.x + 40;
+      baby.y = parent.y;
+      baby.vx = 0; baby.vy = 0;
+      baby.rotation = 0; baby.flying = false;
+      randomEvent = null;
+      gameState = 'ready';
+      yeetPhase = 'power';
+      powerLabel.textContent = 'Tap once to lock power, again for angle.';
+      startPowerAnim();
+    }
+
+    function resetGame(){
+      cpsOverlay.classList.remove('active');
+      startScreen.style.display = 'none';
+      score = 0; totalDistance = 0;
+      updateScoreUi();
+      resetForNextThrow();
+    }
+
+    /* =========================
+       RENDERING
+       ========================= */
+    function drawGround(){
+      const h = canvas.clientHeight;
+      const w = canvas.clientWidth;
+      ctx.fillStyle = '#90EE90';
+      ctx.fillRect(0, h - 100, w, 100);
+
+      ctx.strokeStyle = '#228B22';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < w; i += 20) {
+        ctx.beginPath();
+        ctx.moveTo(i, h - 100);
+        ctx.lineTo(i + 5, h - 110);
+        ctx.stroke();
+      }
+    }
+
+    function drawParent(){
+      ctx.save();
+      ctx.translate(parent.x, parent.y);
+
+      // Legs
+      ctx.fillStyle = '#4169E1';
+      ctx.fillRect(10, 60, 15, 40);
+      ctx.fillRect(35, 60, 15, 40);
+
+      // Shoes
+      ctx.fillStyle = '#000';
+      ctx.fillRect(8, 95, 20, 8);
+      ctx.fillRect(33, 95, 20, 8);
+
+      // Torso
+      ctx.fillStyle = '#FF6B9D';
+      ctx.fillRect(5, 20, 50, 45);
+
+      // Left arm down
+      ctx.fillStyle = '#FFD4A3';
+      ctx.fillRect(0, 25, 10, 35);
+      ctx.beginPath(); ctx.arc(5, 62, 6, 0, Math.PI*2); ctx.fill();
+
+      // Right arm raised (prep)
+      ctx.save();
+      ctx.translate(55, 25);
+      if (gameState === 'ready' || gameState === 'aiming') ctx.rotate(-45 * Math.PI/180);
+      ctx.fillRect(0, 0, 10, 35);
+      ctx.beginPath(); ctx.arc(5, 37, 6, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+
+      // Neck + Head
+      ctx.fillStyle = '#FFD4A3';
+      ctx.fillRect(22, 10, 16, 12);
+      ctx.beginPath(); ctx.arc(30, 5, 18, 0, Math.PI*2); ctx.fill();
+
+      // Hair
+      ctx.fillStyle = '#8B4513';
+      ctx.beginPath(); ctx.arc(30, 0, 18, Math.PI, 0, true); ctx.fill();
+      ctx.strokeStyle = '#8B4513'; ctx.lineWidth = 4;
+      for (let i=0;i<5;i++){
+        ctx.beginPath();
+        const a = Math.PI + (i * Math.PI/4);
+        const x = 30 + Math.cos(a)*18;
+        const y = 0 + Math.sin(a)*18;
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + Math.cos(a)*8, y + Math.sin(a)*8);
+        ctx.stroke();
+      }
+
+      // Face
+      ctx.fillStyle = '#000';
+      ctx.beginPath(); ctx.arc(23, 3, 3, 0, Math.PI*2); ctx.arc(37, 3, 3, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(30, 10, 8, 0.2, Math.PI-0.2); ctx.stroke();
+
+      // Eyebrows
+      ctx.beginPath();
+      ctx.moveTo(18,-2); ctx.lineTo(28,0);
+      ctx.moveTo(42,-2); ctx.lineTo(32,0);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawBaby(){
+      ctx.save();
+      ctx.translate(baby.x, baby.y);
+      ctx.rotate(baby.rotation);
+
+      // body
+      ctx.fillStyle = '#87CEEB';
+      ctx.fillRect(-baby.size/2, -baby.size/2, baby.size, baby.size);
+
+      // head
+      ctx.fillStyle = '#FFE4C4';
+      ctx.beginPath(); ctx.arc(0, -baby.size/3, baby.size/3, 0, Math.PI*2); ctx.fill();
+
+      // eyes
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(-5, -baby.size/3, 2, 0, Math.PI*2);
+      ctx.arc(5, -baby.size/3, 2, 0, Math.PI*2);
+      ctx.fill();
+
+      // mouth
+      if (baby.flying){
+        ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(0, -baby.size/3 + 5, 5, 0, Math.PI); ctx.stroke();
+      }
+
+      // diaper
+      ctx.fillStyle = '#FFF';
+      ctx.fillRect(-baby.size/2, baby.size/4, baby.size, baby.size/4);
+
+      ctx.restore();
+    }
+
+    function drawZones(){
+      landingZones.forEach(zone=>{
+        ctx.save();
+        ctx.translate(zone.x, zone.y);
+
+        if (zone.type === 'pool') {
+          // water
+          ctx.fillStyle = '#4ECDC4';
+          ctx.fillRect(zone.wallThickness, zone.wallThickness, zone.width - zone.wallThickness*2, zone.height - zone.wallThickness);
+
+          // walls
+          ctx.fillStyle = '#2C3E50';
+          ctx.fillRect(0, 0, zone.wallThickness, zone.height);
+          ctx.fillRect(zone.width - zone.wallThickness, 0, zone.wallThickness, zone.height);
+          ctx.fillRect(0, 0, zone.width, zone.wallThickness);
+          ctx.fillRect(0, zone.height - 4, zone.width, 4);
+
+          // label
+          ctx.font = 'bold 14px Fredoka';
+          ctx.fillStyle = '#FFF'; ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.textAlign = 'center';
+          ctx.strokeText('POOL', zone.width/2, -8); ctx.fillText('POOL', zone.width/2, -8);
+          ctx.strokeText('x' + zone.multiplier, zone.width/2, zone.height + 18);
+          ctx.fillText('x' + zone.multiplier, zone.width/2, zone.height + 18);
+
+        } else if (zone.type === 'crib') {
+          // mattress
+          ctx.fillStyle = '#FFB6C1';
+          ctx.fillRect(10, 20, zone.width - 20, zone.height - 20);
+
+          // frame
+          ctx.fillStyle = '#8B7355';
+          ctx.fillRect(0, 0, zone.wallThickness, zone.height);
+          ctx.fillRect(zone.width - zone.wallThickness, 0, zone.wallThickness, zone.height);
+          ctx.fillRect(0, 0, zone.width, zone.wallThickness);
+          ctx.fillRect(0, zone.height - 6, zone.width, 6);
+
+          // decorative bars
+          ctx.strokeStyle = '#FFF'; ctx.lineWidth = 3;
+          for (let i=1;i<7;i++){
+            const x = 15 + i*18;
+            ctx.beginPath(); ctx.moveTo(x,8); ctx.lineTo(x,60); ctx.stroke();
+          }
+
+          // pillow
+          ctx.fillStyle = '#FFF';
+          ctx.beginPath(); ctx.ellipse(zone.width/2, 35, 25, 15, 0, 0, Math.PI*2); ctx.fill();
+
+          // label
+          ctx.font = 'bold 14px Fredoka';
+          ctx.fillStyle = '#FFF'; ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.textAlign = 'center';
+          ctx.strokeText('CRIB', zone.width/2, -8); ctx.fillText('CRIB', zone.width/2, -8);
+          ctx.strokeText('x' + zone.multiplier, zone.width/2, zone.height + 18);
+          ctx.fillText('x' + zone.multiplier, zone.width/2, zone.height + 18);
+
+        } else if (zone.type === 'bear') {
+          ctx.fillStyle = '#8B4513';
+
+          // body
+          ctx.beginPath(); ctx.ellipse(zone.width/2, zone.height - 30, 50, 60, 0, 0, Math.PI*2); ctx.fill();
+          // head
+          ctx.beginPath(); ctx.arc(zone.width/2, 30, 40, 0, Math.PI*2); ctx.fill();
+          // ears
+          ctx.beginPath();
+          ctx.arc(zone.width/2 - 30, 10, 15, 0, Math.PI*2);
+          ctx.arc(zone.width/2 + 30, 10, 15, 0, Math.PI*2);
+          ctx.fill();
+          // snout
+          ctx.fillStyle = '#D2691E';
+          ctx.beginPath(); ctx.ellipse(zone.width/2, 40, 20, 15, 0, 0, Math.PI*2); ctx.fill();
+          // eyes
+          ctx.fillStyle = '#000';
+          ctx.beginPath(); ctx.arc(zone.width/2 - 15, 20, 5, 0, Math.PI*2);
+          ctx.arc(zone.width/2 + 15, 20, 5, 0, Math.PI*2); ctx.fill();
+          // mouth
+          ctx.fillStyle = '#000';
+          ctx.beginPath(); ctx.ellipse(zone.width/2, 45, 15, 12, 0, 0, Math.PI*2); ctx.fill();
+          // label
+          ctx.font = 'bold 14px Fredoka';
+          ctx.fillStyle = '#FFCDD2'; ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.textAlign = 'center';
+          ctx.strokeText('BEAR', zone.width/2, -8); ctx.fillText('BEAR', zone.width/2, -8);
         }
 
-        function animateAngleIndicator() {
-            const indicator = document.getElementById('angleIndicator');
-            indicatorDirection = 1;
-            angleIndicatorPosition = 0;
-            
-            function animate() {
-                angleIndicatorPosition += indicatorDirection * 2;
-                
-                if (angleIndicatorPosition >= 100) {
-                    angleIndicatorPosition = 100;
-                    indicatorDirection = -1;
-                } else if (angleIndicatorPosition <= 0) {
-                    angleIndicatorPosition = 0;
-                    indicatorDirection = 1;
-                }
-                
-                indicator.style.left = angleIndicatorPosition + '%';
-                scaleAnimationId = requestAnimationFrame(animate);
-            }
-            
-            animate();
+        ctx.restore();
+      });
+    }
+
+    function drawRandomEvent(){
+      if (!randomEvent || eventDuration <= 0) return;
+      eventDuration--;
+      ctx.font = 'bold 18px Fredoka';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#fff';
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 4;
+      ctx.strokeText(randomEvent.name, canvas.clientWidth/2, 96);
+      ctx.fillText(randomEvent.name, canvas.clientWidth/2, 96);
+
+      if (randomEvent.type === 'wind') {
+        for (let i=0;i<10;i++){
+          ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          const y = 140 + i*40;
+          const off = (Date.now()/10 + i*20) % canvas.clientWidth;
+          ctx.moveTo(off, y); ctx.lineTo(off + 30, y);
+          ctx.stroke();
         }
+      }
+      if (randomEvent.type === 'helicopter') {
+        const x = canvas.clientWidth/2 + Math.sin(Date.now()/500)*100;
+        const y = 150;
+        ctx.fillStyle = '#E53935';
+        ctx.fillRect(x-30, y, 60, 20);
+        ctx.fillRect(x-5, y-15, 10, 15);
+        ctx.strokeStyle = '#111'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(x-40, y-15); ctx.lineTo(x+40, y-15); ctx.stroke();
+      }
+    }
 
-        // Button click handler - ONE CLICK PER PHASE
-        document.getElementById('yeetBtn').addEventListener('click', () => {
-            if (gameState === 'ready') {
-                // First click - lock power immediately and move to angle
-                powerValue = powerIndicatorPosition;
-                cancelAnimationFrame(scaleAnimationId);
-                
-                // Hide power bar, show angle bar
-                document.getElementById('powerBar').style.display = 'none';
-                document.getElementById('angleBar').classList.add('active');
-                
-                // Update UI
-                yeetPhase = 'angle';
-                gameState = 'aiming';
-                document.getElementById('scaleTitle').textContent = '📐 YEET ANGLE 📐';
-                document.getElementById('powerLabel').textContent = 'CLICK YEET FOR ANGLE!';
-                
-                // Start angle animation
-                animateAngleIndicator();
-                
-            } else if (gameState === 'aiming') {
-                // Second click - lock angle and launch
-                angleValue = angleIndicatorPosition;
-                cancelAnimationFrame(scaleAnimationId);
-                launchBaby();
-            }
-        });
+    function gameLoop(){
+      ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
 
-        // ========================================
-        // BABY PHYSICS & LAUNCHING
-        // ========================================
-        function launchBaby() {
-            // Power: 0-100 becomes velocity 8-28 (increased range for better gameplay)
-            const velocity = (powerValue / 100) * 20 + 8;
-            
-            // Angle: 0 = up (90°), 50 = straight (0°), 100 = down (-90°)
-            // We need to invert Y because canvas Y goes down, but we want "up" to mean up
-            let angleDegrees;
-            if (angleValue < 50) {
-                // Left side of bar = UP (positive angle)
-                angleDegrees = 90 - (angleValue * 1.8); // 90° to 0°
-            } else {
-                // Right side of bar = DOWN (negative angle)
-                angleDegrees = -(angleValue - 50) * 1.8; // 0° to -90°
-            }
-            
-            const angleRadians = angleDegrees * (Math.PI / 180);
-            
-            // Calculate velocity components (note: negative vy because canvas Y is inverted)
-            baby.vx = Math.cos(angleRadians) * velocity;
-            baby.vy = -Math.sin(angleRadians) * velocity; // Negative because canvas Y goes down
-            
-            baby.flying = true;
-            baby.rotationSpeed = (Math.random() - 0.5) * 0.3;
-            
-            gameState = 'flying';
-            
-            // Random event chance (30%)
-            if (Math.random() < 0.3) {
-                triggerRandomEvent();
-            }
-        }
+      drawGround();
+      drawZones();
+      drawParent();
+      drawBaby();
+      drawRandomEvent();
 
-        function updateBabyPhysics() {
-            if (!baby.flying) return;
-            
-            // Apply gravity
-            baby.vy += 0.5;
-            
-            // Apply random event effects
-            if (randomEvent) {
-                if (randomEvent.type === 'wind') {
-                    baby.vx += randomEvent.force;
-                }
-            }
-            
-            // Update position
-            baby.x += baby.vx;
-            baby.y += baby.vy;
-            baby.rotation += baby.rotationSpeed;
-            
-            // Check collision with landing zone walls (pool and crib have solid walls)
-            for (let zone of landingZones) {
-                if (zone.hasWalls) {
-                    const babyRadius = baby.size / 2;
-                    
-                    // Check if baby is within the zone's vertical range
-                    if (baby.y + babyRadius >= zone.y && baby.y - babyRadius <= zone.y + zone.height) {
-                        // Check left wall collision
-                        if (baby.x + babyRadius >= zone.x && baby.x - babyRadius < zone.x && baby.vx > 0) {
-                            baby.x = zone.x - babyRadius;
-                            baby.vx = -baby.vx * 0.6; // Bounce with energy loss
-                            baby.rotationSpeed *= -1;
-                        }
-                        
-                        // Check right wall collision
-                        if (baby.x - babyRadius <= zone.x + zone.width && baby.x + babyRadius > zone.x + zone.width && baby.vx < 0) {
-                            baby.x = zone.x + zone.width + babyRadius;
-                            baby.vx = -baby.vx * 0.6; // Bounce with energy loss
-                            baby.rotationSpeed *= -1;
-                        }
-                    }
-                    
-                    // Check if baby is within horizontal range
-                    if (baby.x >= zone.x && baby.x <= zone.x + zone.width) {
-                        // Check top wall/edge collision (back wall)
-                        if (baby.y + babyRadius >= zone.y && baby.y - babyRadius < zone.y && baby.vy > 0) {
-                            baby.y = zone.y - babyRadius;
-                            baby.vy = -baby.vy * 0.5; // Bounce off back wall
-                            baby.rotationSpeed *= -1;
-                        }
-                    }
-                }
-            }
-            
-            // Check for landing on ground
-            if (baby.y >= canvas.height - 120) {
-                checkLanding();
-            }
-            
-            // Check if baby went off screen (fail)
-            if (baby.x < 0 || baby.x > canvas.width || baby.y > canvas.height) {
-                triggerCPS();
-            }
-        }
+      if (gameState === 'flying') updatePhysics();
 
-        // ========================================
-        // RANDOM EVENTS (CHAOS FACTOR)
-        // ========================================
-        function triggerRandomEvent() {
-            const events = [
-                { type: 'wind', name: 'GUSTY WIND', force: (Math.random() - 0.5) * 0.5, emoji: '🌪️' },
-                { type: 'helicopter', name: 'HELICOPTER MOM', force: 0, emoji: '🚁' },
-                { type: 'explosion', name: 'DIAPER DETONATION', force: 0, emoji: '💥' }
-            ];
-            
-            randomEvent = events[Math.floor(Math.random() * events.length)];
-            eventDuration = 120; // frames
-            
-            // Event will be drawn on screen, no caption needed
-        }
+      requestAnimationFrame(gameLoop);
+    }
 
-        // ========================================
-        // LANDING DETECTION & SCORING
-        // ========================================
-        function checkLanding() {
-            baby.flying = false;
-            baby.vy = 0;
-            baby.vx = 0;
-            let landed = false;
-            let landedZone = null;
-            
-            // Check if landed in a safe zone or bear (baby center must be inside the zone)
-            for (let zone of landingZones) {
-                // Check if baby's center point is within the zone boundaries
-                if (baby.x >= zone.x + 10 && baby.x <= zone.x + zone.width - 10 &&
-                    baby.y >= zone.y && baby.y <= zone.y + zone.height) {
-                    landed = true;
-                    landedZone = zone;
-                    break;
-                }
-            }
-            
-            if (landed && landedZone) {
-                if (landedZone.type === 'bear') {
-                    // Baby eaten by bear - instant fail
-                    showCaption('🐻 BABY WAS EATEN! 🐻');
-                    setTimeout(() => {
-                        triggerCPS();
-                    }, 2000);
-                } else {
-                    // GOOD LANDING - show success caption
-                    showCaption(landingCaptions[Math.floor(Math.random() * landingCaptions.length)]);
-                    
-                    // Calculate score
-                    const distance = Math.floor(baby.x - parent.x - 40);
-                    const baseScore = distance * landedZone.multiplier;
-                    let bonusScore = 0;
-                    
-                    // Style bonus (based on rotation)
-                    const styleBonus = Math.floor(Math.abs(baby.rotation) * 10);
-                    bonusScore += styleBonus;
-                    
-                    // Random event bonus
-                    if (randomEvent) {
-                        bonusScore += 500;
-                    }
-                    
-                    const finalScore = baseScore + bonusScore;
-                    score += finalScore;
-                    totalDistance += distance;
-                    
-                    updateScoreDisplay();
-                    
-                    setTimeout(() => {
-                        resetForNextThrow();
-                    }, 2000);
-                }
-            } else {
-                // Bad landing (ground) - trigger CPS with fail caption
-                showCaption(failCaptions[Math.floor(Math.random() * failCaptions.length)]);
-                setTimeout(() => {
-                    triggerCPS();
-                }, 1500);
-            }
-        }
-
-        // ========================================
-        // CPS FAIL STATE
-        // ========================================
-        function triggerCPS() {
-            gameState = 'cps';
-            document.getElementById('cpsScore').textContent = score;
-            document.getElementById('cpsDistance').textContent = totalDistance;
-            document.getElementById('cpsOverlay').classList.add('active');
-        }
-
-        // ========================================
-        // CAPTION SYSTEM
-        // ========================================
-        function showCaption(text) {
-            const caption = document.getElementById('caption');
-            caption.textContent = text;
-            caption.classList.remove('show');
-            
-            // Force reflow
-            void caption.offsetWidth;
-            
-            caption.classList.add('show');
-        }
-
-        // ========================================
-        // SCORE & UI UPDATES
-        // ========================================
-        function updateScoreDisplay() {
-            document.getElementById('scoreValue').textContent = score;
-            document.getElementById('distanceValue').textContent = totalDistance;
-        }
-
-        // ========================================
-        // RESET FUNCTIONS
-        // ========================================
-        function resetForNextThrow() {
-            baby.x = parent.x + 40;
-            baby.y = parent.y;
-            baby.vx = 0;
-            baby.vy = 0;
-            baby.rotation = 0;
-            baby.flying = false;
-            randomEvent = null;
-            gameState = 'ready';
-            yeetPhase = 'power';
-            
-            // Reset UI
-            document.getElementById('powerLabel').textContent = 'CLICK YEET FOR POWER!';
-            document.getElementById('scaleTitle').textContent = '⚡ YEET POWER ⚡';
-            document.getElementById('powerBar').style.display = 'block';
-            document.getElementById('angleBar').classList.remove('active');
-            
-            powerIndicatorPosition = 0;
-            angleIndicatorPosition = 0;
-            indicatorDirection = 1;
-            
-            animatePowerIndicator();
-        }
-
-        function resetGame() {
-            document.getElementById('cpsOverlay').classList.remove('active');
-            score = 0;
-            totalDistance = 0;
-            updateScoreDisplay();
-            resetForNextThrow();
-        }
-
-        // ========================================
-        // RENDERING
-        // ========================================
-        function drawParent() {
-            ctx.save();
-            ctx.translate(parent.x, parent.y);
-            
-            // Legs
-            ctx.fillStyle = '#4169E1'; // Blue pants
-            ctx.fillRect(10, 60, 15, 40); // Left leg
-            ctx.fillRect(35, 60, 15, 40); // Right leg
-            
-            // Shoes
-            ctx.fillStyle = '#000';
-            ctx.fillRect(8, 95, 20, 8); // Left shoe
-            ctx.fillRect(33, 95, 20, 8); // Right shoe
-            
-            // Body/Torso
-            ctx.fillStyle = '#FF6B9D'; // Pink shirt
-            ctx.fillRect(5, 20, 50, 45);
-            
-            // Arms
-            ctx.fillStyle = '#FFD4A3'; // Skin tone
-            
-            // Left arm (down)
-            ctx.fillRect(0, 25, 10, 35);
-            // Left hand
-            ctx.beginPath();
-            ctx.arc(5, 62, 6, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Right arm (throwing position - up and extended)
-            ctx.save();
-            ctx.translate(55, 25);
-            if (gameState === 'ready' || gameState === 'aiming') {
-                ctx.rotate(-45 * Math.PI / 180); // Arm raised
-            }
-            ctx.fillRect(0, 0, 10, 35);
-            // Right hand
-            ctx.beginPath();
-            ctx.arc(5, 37, 6, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-            
-            // Neck
-            ctx.fillStyle = '#FFD4A3';
-            ctx.fillRect(22, 10, 16, 12);
-            
-            // Head
-            ctx.fillStyle = '#FFD4A3';
-            ctx.beginPath();
-            ctx.arc(30, 5, 18, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Hair
-            ctx.fillStyle = '#8B4513'; // Brown hair
-            ctx.beginPath();
-            ctx.arc(30, 0, 18, Math.PI, 0, true);
-            ctx.fill();
-            
-            // Hair details (spiky)
-            for (let i = 0; i < 5; i++) {
-                ctx.beginPath();
-                const angle = Math.PI + (i * Math.PI / 4);
-                const x = 30 + Math.cos(angle) * 18;
-                const y = 0 + Math.sin(angle) * 18;
-                ctx.moveTo(x, y);
-                ctx.lineTo(x + Math.cos(angle) * 8, y + Math.sin(angle) * 8);
-                ctx.lineWidth = 4;
-                ctx.stroke();
-            }
-            
-            // Eyes
-            ctx.fillStyle = '#000';
-            ctx.beginPath();
-            ctx.arc(23, 3, 3, 0, Math.PI * 2); // Left eye
-            ctx.arc(37, 3, 3, 0, Math.PI * 2); // Right eye
-            ctx.fill();
-            
-            // Determined smile/mouth
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(30, 10, 8, 0.2, Math.PI - 0.2);
-            ctx.stroke();
-            
-            // Eyebrows (determined look)
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(18, -2);
-            ctx.lineTo(28, 0);
-            ctx.moveTo(42, -2);
-            ctx.lineTo(32, 0);
-            ctx.stroke();
-            
-            ctx.restore();
-        }
-
-        function drawBaby() {
-            ctx.save();
-            ctx.translate(baby.x, baby.y);
-            ctx.rotate(baby.rotation);
-            
-            // Baby body (onesie)
-            ctx.fillStyle = '#87CEEB';
-            ctx.fillRect(-baby.size/2, -baby.size/2, baby.size, baby.size);
-            
-            // Head
-            ctx.fillStyle = '#FFE4C4';
-            ctx.beginPath();
-            ctx.arc(0, -baby.size/3, baby.size/3, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Eyes (excited)
-            ctx.fillStyle = '#000';
-            ctx.beginPath();
-            ctx.arc(-5, -baby.size/3, 2, 0, Math.PI * 2);
-            ctx.arc(5, -baby.size/3, 2, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Happy mouth
-            if (baby.flying) {
-                ctx.strokeStyle = '#000';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.arc(0, -baby.size/3 + 5, 5, 0, Math.PI);
-                ctx.stroke();
-            }
-            
-            // Diaper
-            ctx.fillStyle = '#FFF';
-            ctx.fillRect(-baby.size/2, baby.size/4, baby.size, baby.size/4);
-            
-            ctx.restore();
-        }
-
-        function drawLandingZones() {
-            landingZones.forEach(zone => {
-                ctx.save();
-                ctx.translate(zone.x, zone.y);
-                
-                if (zone.type === 'pool') {
-                    // Swimming pool with solid walls
-                    
-                    // Water (inside)
-                    ctx.fillStyle = '#4ECDC4';
-                    ctx.fillRect(zone.wallThickness, zone.wallThickness, 
-                               zone.width - (zone.wallThickness * 2), 
-                               zone.height - zone.wallThickness);
-                    
-                    // Pool walls (solid concrete)
-                    ctx.fillStyle = '#2C3E50';
-                    
-                    // Left wall
-                    ctx.fillRect(0, 0, zone.wallThickness, zone.height);
-                    
-                    // Right wall  
-                    ctx.fillRect(zone.width - zone.wallThickness, 0, zone.wallThickness, zone.height);
-                    
-                    // Back wall (top)
-                    ctx.fillRect(0, 0, zone.width, zone.wallThickness);
-                    
-                    // Front edge (lip)
-                    ctx.fillRect(0, zone.height - 4, zone.width, 4);
-                    
-                    // Water ripples
-                    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-                    ctx.lineWidth = 2;
-                    for (let i = 0; i < 3; i++) {
-                        ctx.beginPath();
-                        ctx.arc(30 + i * 30, 30, 15 + i * 5, 0, Math.PI);
-                        ctx.stroke();
-                    }
-                    
-                    // Label
-                    ctx.font = 'bold 16px Fredoka';
-                    ctx.fillStyle = '#FFF';
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 3;
-                    ctx.textAlign = 'center';
-                    ctx.strokeText('POOL', zone.width/2, -10);
-                    ctx.fillText('POOL', zone.width/2, -10);
-                    ctx.strokeText('x' + zone.multiplier, zone.width/2, zone.height + 20);
-                    ctx.fillText('x' + zone.multiplier, zone.width/2, zone.height + 20);
-                    
-                } else if (zone.type === 'crib') {
-                    // Baby crib with solid rails
-                    
-                    // Mattress (pink)
-                    ctx.fillStyle = '#FFB6C1';
-                    ctx.fillRect(10, 20, zone.width - 20, zone.height - 20);
-                    
-                    // Solid wooden frame
-                    ctx.fillStyle = '#8B7355';
-                    
-                    // Left rail (solid)
-                    ctx.fillRect(0, 0, zone.wallThickness, zone.height);
-                    
-                    // Right rail (solid)
-                    ctx.fillRect(zone.width - zone.wallThickness, 0, zone.wallThickness, zone.height);
-                    
-                    // Back rail (solid)
-                    ctx.fillRect(0, 0, zone.width, zone.wallThickness);
-                    
-                    // Bottom frame
-                    ctx.fillRect(0, zone.height - 6, zone.width, 6);
-                    
-                    // Decorative bars on sides (not solid, just visual)
-                    ctx.strokeStyle = '#FFF';
-                    ctx.lineWidth = 3;
-                    for (let i = 1; i < 7; i++) {
-                        const x = 15 + i * 18;
-                        ctx.beginPath();
-                        ctx.moveTo(x, 8);
-                        ctx.lineTo(x, 60);
-                        ctx.stroke();
-                    }
-                    
-                    // Pillow
-                    ctx.fillStyle = '#FFF';
-                    ctx.beginPath();
-                    ctx.ellipse(zone.width/2, 35, 25, 15, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Label
-                    ctx.font = 'bold 16px Fredoka';
-                    ctx.fillStyle = '#FFF';
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 3;
-                    ctx.textAlign = 'center';
-                    ctx.strokeText('CRIB', zone.width/2, -10);
-                    ctx.fillText('CRIB', zone.width/2, -10);
-                    ctx.strokeText('x' + zone.multiplier, zone.width/2, zone.height + 20);
-                    ctx.fillText('x' + zone.multiplier, zone.width/2, zone.height + 20);
-                    
-                } else if (zone.type === 'bear') {
-                    // Hungry bear
-                    ctx.fillStyle = '#8B4513'; // Brown bear
-                    
-                    // Body
-                    ctx.beginPath();
-                    ctx.ellipse(zone.width/2, zone.height - 30, 50, 60, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Head
-                    ctx.beginPath();
-                    ctx.arc(zone.width/2, 30, 40, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Ears
-                    ctx.beginPath();
-                    ctx.arc(zone.width/2 - 30, 10, 15, 0, Math.PI * 2);
-                    ctx.arc(zone.width/2 + 30, 10, 15, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Snout
-                    ctx.fillStyle = '#D2691E';
-                    ctx.beginPath();
-                    ctx.ellipse(zone.width/2, 40, 20, 15, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Eyes (mean look)
-                    ctx.fillStyle = '#000';
-                    ctx.beginPath();
-                    ctx.arc(zone.width/2 - 15, 20, 5, 0, Math.PI * 2);
-                    ctx.arc(zone.width/2 + 15, 20, 5, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Open mouth (scary)
-                    ctx.fillStyle = '#000';
-                    ctx.beginPath();
-                    ctx.ellipse(zone.width/2, 45, 15, 12, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Teeth
-                    ctx.fillStyle = '#FFF';
-                    for (let i = 0; i < 5; i++) {
-                        ctx.beginPath();
-                        ctx.moveTo(zone.width/2 - 12 + i * 6, 40);
-                        ctx.lineTo(zone.width/2 - 12 + i * 6, 48);
-                        ctx.lineTo(zone.width/2 - 9 + i * 6, 44);
-                        ctx.fill();
-                    }
-                    
-                    // Arms reaching
-                    ctx.fillStyle = '#8B4513';
-                    ctx.beginPath();
-                    ctx.ellipse(zone.width/2 - 50, zone.height - 40, 15, 30, -30 * Math.PI / 180, 0, Math.PI * 2);
-                    ctx.ellipse(zone.width/2 + 50, zone.height - 40, 15, 30, 30 * Math.PI / 180, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Claws
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 3;
-                    ctx.lineCap = 'round';
-                    for (let i = 0; i < 3; i++) {
-                        ctx.beginPath();
-                        ctx.moveTo(zone.width/2 - 60 + i * 5, zone.height - 50);
-                        ctx.lineTo(zone.width/2 - 65 + i * 5, zone.height - 60);
-                        ctx.stroke();
-                        
-                        ctx.beginPath();
-                        ctx.moveTo(zone.width/2 + 60 - i * 5, zone.height - 50);
-                        ctx.lineTo(zone.width/2 + 65 - i * 5, zone.height - 60);
-                        ctx.stroke();
-                    }
-                    
-                    // Label (warning!)
-                    ctx.font = 'bold 16px Fredoka';
-                    ctx.fillStyle = '#FF0000';
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 3;
-                    ctx.textAlign = 'center';
-                    ctx.strokeText('🚨 BEAR 🚨', zone.width/2, -10);
-                    ctx.fillText('🚨 BEAR 🚨', zone.width/2, -10);
-                }
-                
-                ctx.restore();
-            });
-        }
-
-        function drawGround() {
-            // Grass
-            ctx.fillStyle = '#90EE90';
-            ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
-            
-            // Grass details
-            ctx.strokeStyle = '#228B22';
-            ctx.lineWidth = 2;
-            for (let i = 0; i < canvas.width; i += 20) {
-                ctx.beginPath();
-                ctx.moveTo(i, canvas.height - 100);
-                ctx.lineTo(i + 5, canvas.height - 110);
-                ctx.stroke();
-            }
-        }
-
-        function drawRandomEvent() {
-            if (!randomEvent || eventDuration <= 0) return;
-            
-            eventDuration--;
-            
-            // Draw event indicator
-            ctx.font = 'bold 24px Fredoka';
-            ctx.textAlign = 'center';
-            ctx.fillStyle = '#FFF';
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 4;
-            const text = randomEvent.emoji + ' ' + randomEvent.name + ' ' + randomEvent.emoji;
-            ctx.strokeText(text, canvas.width / 2, 100);
-            ctx.fillText(text, canvas.width / 2, 100);
-            
-            // Visual effects
-            if (randomEvent.type === 'wind') {
-                // Wind lines
-                for (let i = 0; i < 10; i++) {
-                    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    const y = 150 + i * 50;
-                    const offset = (Date.now() / 10 + i * 20) % canvas.width;
-                    ctx.moveTo(offset, y);
-                    ctx.lineTo(offset + 30, y);
-                    ctx.stroke();
-                }
-            } else if (randomEvent.type === 'helicopter') {
-                // Helicopter
-                const heliX = canvas.width / 2 + Math.sin(Date.now() / 500) * 100;
-                const heliY = 150;
-                ctx.fillStyle = '#FF0000';
-                ctx.fillRect(heliX - 30, heliY, 60, 20);
-                ctx.fillRect(heliX - 5, heliY - 15, 10, 15);
-                
-                // Rotor
-                ctx.strokeStyle = '#000';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(heliX - 40, heliY - 15);
-                ctx.lineTo(heliX + 40, heliY - 15);
-                ctx.stroke();
-            }
-        }
-
-        function drawTrajectoryPreview() {
-            // Removed - no preview line needed
-        }
-
-        // ========================================
-        // MAIN GAME LOOP
-        // ========================================
-        function gameLoop() {
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw game elements
-            drawGround();
-            drawLandingZones();
-            drawParent();
-            drawBaby();
-            drawTrajectoryPreview();
-            drawRandomEvent();
-            
-            // Update physics
-            if (gameState === 'flying') {
-                updateBabyPhysics();
-            }
-            
-            // Continue loop
-            requestAnimationFrame(gameLoop);
-        }
-
-        // ========================================
-        // INITIALIZE
-        // ========================================
-        // Game starts when player clicks the start button
-    </script>
+    // ensure initial crisp sizing when fonts/assets load
+    window.addEventListener('load', resizeCanvas);
+  </script>
 </body>
 </html>
