@@ -694,25 +694,7 @@
         let angleValue = 0;
         let audioEnabled = true;
 
-        // Parent (thrower) position
-        const parent = {
-            x: 100,
-            y: canvas.height - 150,
-            width: 60,
-            height: 80
-        };
-
-        // Baby physics
-        let baby = {
-            x: parent.x + 40,
-            y: parent.y,
-            vx: 0,
-            vy: 0,
-            rotation: 0,
-            rotationSpeed: 0,
-            size: 30,
-            flying: false
-        };
+        
 
         // Landing zones (targets)
         let landingZones = [
@@ -753,7 +735,29 @@
             }
         ];
 
-        resizeCanvas();
+        
+
+// Parent (thrower) position
+        const parent = {
+            x: 100,
+            y: canvas.height - 150,
+            width: 60,
+            height: 80
+        };
+
+        // Baby physics
+        let baby = {
+            x: parent.x + 40,
+            y: parent.y,
+            vx: 0,
+            vy: 0,
+            rotation: 0,
+            rotationSpeed: 0,
+            size: 30,
+            flying: false
+        };
+
+resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
         // Random events
