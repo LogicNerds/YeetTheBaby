@@ -683,8 +683,7 @@
             landingZones[2].height = 120;
         }
         
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
+        
 
         // Game state
         let gameState = 'start'; // 'start', 'aiming', 'flying', 'landed'
@@ -753,6 +752,9 @@
                 hasWalls: false
             }
         ];
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
 
         // Random events
         let randomEvent = null;
