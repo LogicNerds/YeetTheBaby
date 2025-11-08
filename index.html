@@ -63,6 +63,7 @@
       #app {
         width: 100vw;
         height: 100vh;
+        max-height: 100vh;
       }
     }
 
@@ -453,18 +454,22 @@
     // Crib at 65ft (244px = 207+37.5)  
     // Bear at 90ft (338px = 301+37.5) - half size
     let landingZones = [
-      { x: 100, y: 400, width: 50, height: 18, type: 'pool', name: 'POOL', multiplier: 2, color: '#4ECDC4', hasWalls: true, wallThickness: 4 },
-      { x: 225, y: 400, width: 50, height: 18, type: 'crib', name: 'CRIB', multiplier: 5, color: '#FFB6C1', hasWalls: true, wallThickness: 3 },
+      { x: 131, y: 400, width: 37, height: 25, type: 'pool', name: 'POOL', multiplier: 2, color: '#4ECDC4', hasWalls: true, wallThickness: 4 },
+      { x: 225, y: 400, width: 37, height: 28, type: 'crib', name: 'CRIB', multiplier: 5, color: '#FFB6C1', hasWalls: true, wallThickness: 3 },
       { x: 310, y: 400, width: 20, height: 25, type: 'bear', name: 'BEAR', multiplier: -1, color: '#8B4513', hasWalls: false }
     ];
 
     /* CANVAS SETUP */
+    let canvasHeight = 517; // will be updated on resize
+    
     function resizeCanvas() {
       const area = document.getElementById('gameArea');
       const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
 
       const cssW = area.clientWidth;
       const cssH = area.clientHeight;
+      
+      canvasHeight = cssH;
 
       canvas.width = Math.floor(cssW * dpr);
       canvas.height = Math.floor(cssH * dpr);
@@ -473,6 +478,13 @@
       canvas.style.height = cssH + 'px';
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      
+      // Update positions based on actual height
+      const groundY = canvasHeight - 100;
+      parent.y = groundY - 25;
+      landingZones[0].y = groundY - 25;
+      landingZones[1].y = groundY - 25;
+      landingZones[2].y = groundY - 50;
 
       if (!baby.flying) {
         baby.x = parent.x + 25;
@@ -658,13 +670,13 @@
         }
       }
 
-      // ground (fixed at 517px from top)
-      if (baby.y >= 517) {
+      // ground (dynamic based on canvas height)
+      if (baby.y >= canvasHeight - 100) {
         checkLanding();
       }
 
       // off screen
-      if (baby.x < 0 || baby.x > 375 || baby.y > 517) {
+      if (baby.x < 0 || baby.x > 375 || baby.y > canvasHeight) {
         triggerCPS();
       }
     }
@@ -745,15 +757,16 @@
 
     /* RENDERING */
     function drawGround(){
+      const groundY = canvasHeight - 100;
       ctx.fillStyle = '#90EE90';
-      ctx.fillRect(0, 417, 375, 100);
+      ctx.fillRect(0, groundY, 375, 100);
 
       ctx.strokeStyle = '#228B22';
       ctx.lineWidth = 2;
       for (let i = 0; i < 375; i += 20) {
         ctx.beginPath();
-        ctx.moveTo(i, 417);
-        ctx.lineTo(i + 5, 407);
+        ctx.moveTo(i, groundY);
+        ctx.lineTo(i + 5, groundY - 10);
         ctx.stroke();
       }
     }
@@ -871,7 +884,7 @@
           for (let i = 0; i < 3; i++) {
             ctx.beginPath();
             ctx.arc(zone.wallThickness + rippleSpacing * (i + 0.5), 
-                   zone.wallThickness + 1, 
+                   zone.wallThickness + 15, 
                    8, 0, Math.PI);
             ctx.stroke();
           }
@@ -888,9 +901,9 @@
 
         } else if (zone.type === 'crib') {
           ctx.fillStyle = '#FFB6C1';
-          ctx.fillRect(zone.wallThickness - 3, zone.wallThickness + 2, 
-            zone.width - (zone.wallThickness * 2) - 2, 
-            zone.height - zone.wallThickness - 4);
+          ctx.fillRect(zone.wallThickness + 2, zone.wallThickness + 10, 
+                      zone.width - (zone.wallThickness * 2) - 4, 
+                      zone.height - zone.wallThickness - 16);
 
           ctx.fillStyle = '#8B7355';
           ctx.fillRect(0, 0, zone.wallThickness, zone.height);
@@ -909,6 +922,11 @@
             ctx.lineTo(x, zone.height - 8);
             ctx.stroke();
           }
+
+          ctx.fillStyle = '#FFF';
+          ctx.beginPath();
+          ctx.ellipse(zone.width/2, zone.wallThickness + 18, 20, 12, 0, 0, Math.PI * 2);
+          ctx.fill();
 
           ctx.font = 'bold 16px Fredoka';
           ctx.fillStyle = '#FFF';
@@ -1030,7 +1048,7 @@
     }
 
     function gameLoop(){
-      ctx.clearRect(0, 0, 375, 517);
+      ctx.clearRect(0, 0, 375, canvasHeight);
 
       drawGround();
       drawZones();
