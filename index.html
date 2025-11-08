@@ -18,30 +18,24 @@
       background: #E8D5F2;
       color: #111;
       -webkit-tap-highlight-color: transparent;
-      overflow: hidden; /* game controls internal scroll/fit */
+      overflow: hidden;
     }
 
     :root{
-      /* will be set by JS to the visible viewport height */
       --vh: 1vh;
-
-      /* scale variables for responsive sizing */
-      --max-app-width: 720px;      /* cap so desktop doesn’t grow forever */
+      --max-app-width: 720px;
       --ui-gap: clamp(8px, 2vmin, 16px);
       --radius: 16px;
       --shadow: 0 8px 24px rgba(0,0,0,0.25);
 
-      /* typography scales */
       --title-size: clamp(28px, 6.5vw, 54px);
       --tagline-size: clamp(14px, 3.5vw, 22px);
       --label-size: clamp(12px, 3vw, 18px);
       --btn-size: clamp(16px, 4.5vw, 22px);
 
-      /* safe area for iOS */
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --safe-top: env(safe-area-inset-top, 0px);
 
-      /* brand colors */
       --brand-1: #667eea;
       --brand-2: #764ba2;
       --accent-1: #FF6B9D;
@@ -50,9 +44,6 @@
       --mint-2: #44A08D;
     }
 
-    /* =========================
-       APP LAYOUT
-       ========================= */
     #app {
       width: 100%;
       height: calc(var(--vh) * 100);
@@ -68,7 +59,6 @@
       padding-top: var(--safe-top);
     }
 
-    /* Game Area (Canvas sits here) */
     #gameArea {
       position: relative;
       background: linear-gradient(180deg, #87CEEB 0%, #FFB6C1 100%);
@@ -85,7 +75,6 @@
       touch-action: manipulation;
     }
 
-    /* Top-left HUD */
     #ui {
       position: absolute;
       top: calc(12px + var(--safe-top));
@@ -109,7 +98,6 @@
     #score { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); }
     #distance { background: linear-gradient(135deg, var(--mint-1), var(--mint-2)); }
 
-    /* Audio and Restart buttons (top-right) */
     .top-actions {
       position: absolute;
       top: calc(12px + var(--safe-top));
@@ -133,7 +121,6 @@
     }
     .chip:active { transform: translateY(1px); }
 
-    /* Caption popup (center) */
     #caption {
       position: absolute;
       inset: 50% auto auto 50%;
@@ -164,7 +151,6 @@
       100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
     }
 
-    /* Start Screen (overlay) */
     #startScreen {
       position: absolute;
       inset: 0;
@@ -213,7 +199,6 @@
       opacity: 0.9;
     }
 
-    /* Control Area */
     #controlArea {
       background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
       display: grid;
@@ -286,16 +271,23 @@
       min-height: clamp(44px, 8.5vh, 70px);
     }
 
-    /* CPS Overlay (fail state) */
+    /* CPS Overlay with flashing red animation */
     #cpsOverlay {
       position: absolute;
       inset: 0;
-      background: rgba(200,0,0,0.95);
+      background: rgba(255,0,0,0.95);
       display: none;
       z-index: 25;
       padding: 24px;
       color: #fff;
+      animation: sirenFlash 0.5s infinite;
     }
+    
+    @keyframes sirenFlash {
+      0%, 100% { background: rgba(255,0,0,0.95); }
+      50% { background: rgba(200,0,0,0.95); }
+    }
+    
     #cpsOverlay.active { display: grid; place-items: center; }
     .cps-wrap { display: grid; gap: 14px; place-items: center; text-align: center; }
     .cps-title {
@@ -303,7 +295,15 @@
       font-weight: 900;
       letter-spacing: 0.5px;
       text-shadow: 3px 3px 0 rgba(0,0,0,0.35);
+      animation: shake 0.3s infinite;
     }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+    
     .cps-subtitle {
       font-size: clamp(14px, 3.8vw, 20px);
       opacity: 0.95;
@@ -319,7 +319,6 @@
       min-width: 60%;
     }
 
-    /* Orientation lock overlay (portrait only) */
     #rotateOverlay {
       position: fixed;
       inset: 0;
@@ -340,7 +339,6 @@
       font-weight: 800;
     }
 
-    /* Decorative clouds */
     .cloud {
       position: absolute;
       background: #fff;
@@ -365,59 +363,50 @@
   </div>
 
   <div id="app">
-    <!-- GAME AREA -->
     <div id="gameArea">
-      <!-- clouds -->
       <div class="cloud" style="top: 8%; left: 8%; width: 92px; height: 46px;"></div>
       <div class="cloud" style="top: 20%; left: 72%; width: 112px; height: 56px; animation-delay: -5s;"></div>
-      <div class="cloud" style="top: 48%; left: 28%; width: 84px; height: 42px; animation-delay: -10s;"></div>
-      <div class="cloud" style="top: 70%; left: 80%; width: 106px; height: 53px; animation-delay: -15s;"></div>
+      <div class="cloud" style="top: 15%; left: 45%; width: 84px; height: 42px; animation-delay: -10s;"></div>
 
       <canvas id="gameCanvas"></canvas>
 
-      <!-- HUD -->
       <div id="ui">
         <div id="score" class="hud-badge">YEET SCORE: <span id="scoreValue">0</span></div>
         <div id="distance" class="hud-badge">DISTANCE: <span id="distanceValue">0</span> ft</div>
       </div>
 
-      <!-- Top-right actions -->
       <div class="top-actions">
         <button id="audioToggle" class="chip" title="Toggle Music">Sound</button>
         <button id="restartBtn" class="chip" title="Restart">Restart</button>
       </div>
 
-      <!-- Caption -->
       <div id="caption"></div>
 
-      <!-- CPS fail overlay -->
       <div id="cpsOverlay">
         <div class="cps-wrap">
-          <div class="cps-title">CPS IS HERE</div>
-          <div class="cps-subtitle">That was not a safe landing.</div>
+          <div class="cps-title">🚨 CPS IS HERE! 🚨</div>
+          <div class="cps-subtitle">That was NOT a safe landing!</div>
           <div class="cps-stats">
             <div>Final Score: <span id="cpsScore">0</span></div>
             <div>Total Distance: <span id="cpsDistance">0</span> ft</div>
           </div>
-          <button class="btn" id="cpsTryAgain">Try Again</button>
+          <button class="btn" id="cpsTryAgain">TRY AGAIN (LEGALLY)</button>
         </div>
       </div>
 
-      <!-- Start screen -->
       <div id="startScreen">
         <div class="start-wrap">
-          <div class="game-title">YEET THE BABY</div>
-          <div class="game-tagline">“Flight School Starts Early”</div>
-          <button id="startBtn" class="btn">Start</button>
+          <div class="game-title">🚼 YEET THE BABY 🚼</div>
+          <div class="game-tagline">"Flight School Starts Early"</div>
+          <button id="startBtn" class="btn">START YEETING</button>
           <div class="credits">Neon Bread Studios © 2025</div>
         </div>
       </div>
     </div>
 
-    <!-- CONTROLS -->
     <div id="controlArea">
       <div id="yeetScale">
-        <div class="scale-title" id="scaleTitle">Yeet Power</div>
+        <div class="scale-title" id="scaleTitle">⚡ YEET POWER ⚡</div>
 
         <div id="powerBar">
           <div class="bar-labels"><span>Weak</span><span>Medium</span><span>Strong</span></div>
@@ -425,26 +414,23 @@
         </div>
 
         <div id="angleBar" style="display:none;">
-          <div class="bar-labels" style="color:var(--mint-1)"><span>Down</span><span>Straight</span><span>Up</span></div>
+          <div class="bar-labels" style="color:var(--mint-1)"><span>⬇️ Down</span><span>➡️ Straight</span><span>⬆️ Up</span></div>
           <div class="angle-bar"><div id="angleIndicator" class="indicator"></div></div>
         </div>
 
-        <div id="powerLabel" class="scale-note">Tap once to lock power, again to lock angle.</div>
+        <div id="powerLabel" class="scale-note">⬆️ Time your clicks carefully! ⬆️</div>
       </div>
 
-      <button id="yeetBtn" class="btn">YEET</button>
+      <button id="yeetBtn" class="btn">YEET!</button>
     </div>
   </div>
 
-  <!-- Audio -->
   <audio id="bgMusic" preload="auto" loop>
     <source src="retro-8bit-happy-videogame-music-246631.mp3" type="audio/mpeg" />
   </audio>
 
   <script>
-    /* =========================
-       VIEWPORT & ORIENTATION
-       ========================= */
+    /* VIEWPORT & ORIENTATION */
     function setVh() {
       document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
     }
@@ -454,20 +440,15 @@
 
     const rotateOverlay = document.getElementById('rotateOverlay');
     function enforcePortrait() {
-  const isLandscape = window.innerWidth > window.innerHeight;
-  const isMobile = window.innerWidth < 900; // treat screens narrower than 900px as mobile/tablet
-
-  // Only show overlay if landscape AND it's a mobile-sized device
-  rotateOverlay.classList.toggle('show', isMobile && isLandscape);
-}
-
+      const isLandscape = window.innerWidth > window.innerHeight;
+      const isMobile = window.innerWidth < 900;
+      rotateOverlay.classList.toggle('show', isMobile && isLandscape);
+    }
     enforcePortrait();
     window.addEventListener('resize', enforcePortrait);
     window.addEventListener('orientationchange', enforcePortrait);
 
-    /* =========================
-       GAME STATE & ELEMENTS
-       ========================= */
+    /* GAME STATE & ELEMENTS */
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d', { alpha: true });
 
@@ -493,7 +474,7 @@
     const cpsScore = document.getElementById('cpsScore');
     const cpsDistance = document.getElementById('cpsDistance');
 
-    let gameState = 'start'; // start, ready, aiming, flying, cps
+    let gameState = 'start';
     let score = 0;
     let totalDistance = 0;
     let yeetPhase = 'power';
@@ -502,23 +483,19 @@
 
     let audioEnabled = true;
 
-    // world objects
-    const parent = { x: 100, y: 0, width: 60, height: 80 };
+    const parent = { x: 50, y: 0, width: 40, height: 60 };
     let baby = {
       x: 0, y: 0, vx: 0, vy: 0,
-      rotation: 0, rotationSpeed: 0, size: 30, flying: false
+      rotation: 0, rotationSpeed: 0, size: 20, flying: false
     };
 
-    // landing zones (scaled in updateLandingZones)
     let landingZones = [
-      { x: 400, y: 0, width: 120, height: 60, type: 'pool', name: 'POOL', multiplier: 2, color: '#4ECDC4', hasWalls: true, wallThickness: 8 },
-      { x: 650, y: 0, width: 140, height: 70, type: 'crib', name: 'CRIB', multiplier: 5, color: '#FFB6C1', hasWalls: true, wallThickness: 6 },
-      { x: 950, y: 0, width: 150, height: 120, type: 'bear', name: 'BEAR', multiplier: -1, color: '#8B4513', hasWalls: false }
+      { x: 0, y: 0, width: 300, height: 60, type: 'pool', name: 'POOL', multiplier: 2, color: '#4ECDC4', hasWalls: true, wallThickness: 8 },
+      { x: 0, y: 0, width: 300, height: 70, type: 'crib', name: 'CRIB', multiplier: 5, color: '#FFB6C1', hasWalls: true, wallThickness: 6 },
+      { x: 0, y: 0, width: 300, height: 120, type: 'bear', name: 'BEAR', multiplier: -1, color: '#8B4513', hasWalls: false }
     ];
 
-    /* =========================
-       RESPONSIVE CANVAS
-       ========================= */
+    /* RESPONSIVE CANVAS */
     function resizeCanvas() {
       const area = document.getElementById('gameArea');
       const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
@@ -526,18 +503,14 @@
       const cssW = area.clientWidth;
       const cssH = area.clientHeight;
 
-      // set backing store size
       canvas.width = Math.floor(cssW * dpr);
       canvas.height = Math.floor(cssH * dpr);
 
-      // set CSS size
       canvas.style.width = cssW + 'px';
       canvas.style.height = cssH + 'px';
 
-      // reset transform and scale drawing operations to CSS pixels
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // update world positions based on CSS pixels
       updateLandingZonePositions(cssW, cssH);
 
       parent.y = cssH - 150;
@@ -550,29 +523,39 @@
     resizeCanvas();
 
     function updateLandingZonePositions(w, h) {
-      const baseWidth = 1200;
-      const scale = w / baseWidth;
       const groundY = h - 120;
+      
+      // Scale to 0.2 (20% - double the previous 0.1)
+      const scale = Math.min(w / 1200, 0.2);
+      
+      // Parent is at x=50 (far left)
+      // Pool: 35% across (between parent and crib)
+      const poolX = w * 0.35;
+      // Crib: 55% across (center-ish)
+      const cribX = w * 0.55;
+      // Bear: 80% across (far right)
+      const bearX = w * 0.80;
+      
+      // Pool: 300 wide (same as bear)
+      landingZones[0].x = poolX - (50 * scale);
+      landingZones[0].y = groundY - 25;
+      landingZones[0].width = 400 * scale;
+      landingZones[0].height = 40;
 
-      landingZones[0].x = 400 * scale;
-      landingZones[0].y = groundY - 30;
-      landingZones[0].width = 120 * scale;
-      landingZones[0].height = 60;
+      // Crib: 300 wide (same as bear)
+      landingZones[1].x = cribX - (50 * scale);
+      landingZones[1].y = groundY - 25;
+      landingZones[1].width = 400 * scale;
+      landingZones[1].height = 45;
 
-      landingZones[1].x = 650 * scale;
-      landingZones[1].y = groundY - 30;
-      landingZones[1].width = 140 * scale;
-      landingZones[1].height = 70;
-
-      landingZones[2].x = 950 * scale;
-      landingZones[2].y = groundY - 80;
-      landingZones[2].width = 150 * scale;
-      landingZones[2].height = 120;
+      // Bear: 300 wide (unchanged)
+      landingZones[2].x = bearX - (50 * scale);
+      landingZones[2].y = groundY - 55;
+      landingZones[2].width = 300 * scale;
+      landingZones[2].height = 75;
     }
 
-    /* =========================
-       AUDIO
-       ========================= */
+    /* AUDIO */
     function setAudioUi() {
       audioToggle.textContent = audioEnabled ? 'Sound: On' : 'Sound: Off';
     }
@@ -581,15 +564,13 @@
     function toggleAudio() {
       audioEnabled = !audioEnabled;
       if (!audioEnabled) bgMusic.pause();
-      else bgMusic.play().catch(()=>{ /* autoplay block ignored */ });
+      else bgMusic.play().catch(()=>{});
       setAudioUi();
     }
 
     audioToggle.addEventListener('pointerdown', (e)=>{ e.preventDefault(); toggleAudio(); }, {passive:true});
 
-    /* =========================
-       START / RESTART
-       ========================= */
+    /* START / RESTART */
     startBtn.addEventListener('pointerdown', (e)=>{
       e.preventDefault();
       startScreen.style.display = 'none';
@@ -602,9 +583,7 @@
     restartBtn.addEventListener('pointerdown', (e)=>{ e.preventDefault(); resetGame(); }, {passive:true});
     cpsTryAgain.addEventListener('pointerdown', (e)=>{ e.preventDefault(); resetGame(); }, {passive:true});
 
-    /* =========================
-       POWER & ANGLE INDICATORS
-       ========================= */
+    /* POWER & ANGLE INDICATORS */
     let rafId = null;
     let indicatorDir = 1;
     let powerPos = 0;
@@ -616,7 +595,8 @@
       powerPos = 0;
       powerBar.style.display = 'block';
       angleBar.style.display = 'none';
-      scaleTitle.textContent = 'Yeet Power';
+      scaleTitle.textContent = '⚡ YEET POWER ⚡';
+      powerLabel.textContent = '⬆️ Time your clicks carefully! ⬆️';
       animatePower();
     }
 
@@ -634,7 +614,8 @@
       anglePos = 0;
       powerBar.style.display = 'none';
       angleBar.style.display = 'block';
-      scaleTitle.textContent = 'Yeet Angle';
+      scaleTitle.textContent = '📐 YEET ANGLE 📐';
+      powerLabel.textContent = 'CLICK YEET FOR ANGLE!';
       animateAngle();
     }
 
@@ -651,7 +632,6 @@
         powerValue = powerPos;
         startAngleAnim();
         gameState = 'aiming';
-        powerLabel.textContent = 'Tap to lock angle.';
         return;
       }
       if (gameState === 'aiming') {
@@ -663,20 +643,45 @@
 
     yeetBtn.addEventListener('pointerdown', (e)=>{ e.preventDefault(); handleYeetPress(); }, {passive:true});
 
-    /* =========================
-       PHYSICS & GAME LOGIC
-       ========================= */
+    /* PHYSICS & GAME LOGIC */
     let randomEvent = null;
     let eventDuration = 0;
 
+    const launchCaptions = [
+      "CERTIFIED YEET TECHNICIAN! 🎯",
+      "PARENTING LEVEL: EXPERT 👶",
+      "SEND IT! 🚀",
+      "WEEEEE! 🎢",
+      "NASA CALLED 📞",
+      "TO THE MOON! 🌙",
+      "BIG YEET ENERGY ⚡"
+    ];
+
+    const landingCaptions = [
+      "BUTTER SMOOTH! 🧈",
+      "10/10 LANDING ✨",
+      "STYLE POINTS! 💯",
+      "SAFE AND SOUND 🛡️",
+      "DIAPER INTACT ✅",
+      "PERFECT FORM 🎨",
+      "NAILED IT! 🎯"
+    ];
+
+    const failCaptions = [
+      "YIKES... 😬",
+      "NOT IDEAL... 🙈",
+      "LEARNING EXPERIENCE! 📚",
+      "ROOKIE MISTAKE 🤷",
+      "OOPSIE DAISY 🌼"
+    ];
+
     function launchBaby(){
-      // power 0..100 -> velocity 8..28
       const velocity = (powerValue / 100) * 20 + 8;
 
-      // angle bar: 0 up(90°) -> 50 straight(0°) -> 100 down(-90°)
-      let angleDeg = angleValue < 50
-        ? 90 - (angleValue * 1.8)
-        : -(angleValue - 50) * 1.8;
+      // Angle bar: left (0) = down, right (100) = up
+      // Convert to degrees: 0 = -45° (down-forward), 50 = 0° (straight), 100 = 45° (up-forward)
+      // This ensures baby ALWAYS goes forward (positive vx)
+      const angleDeg = -45 + (angleValue * 0.9); // Range: -45° to +45°
 
       const angleRad = angleDeg * Math.PI / 180;
 
@@ -686,37 +691,32 @@
       baby.rotationSpeed = (Math.random() - 0.5) * 0.3;
 
       gameState = 'flying';
-      powerLabel.textContent = 'Flying...';
 
-      // 30% random event
       if (Math.random() < 0.3) triggerRandomEvent();
     }
 
     function triggerRandomEvent(){
       const events = [
-        { type:'wind', name:'Gusty Wind', force:(Math.random()-0.5)*0.5 },
-        { type:'helicopter', name:'Helicopter Mom', force:0 },
-        { type:'explosion', name:'Diaper Detonation', force:0 },
+        { type:'wind', name:'GUSTY WIND', force:(Math.random()-0.5)*0.5, emoji: '🌪️' },
+        { type:'helicopter', name:'HELICOPTER MOM', force:0, emoji: '🚁' },
+        { type:'explosion', name:'DIAPER DETONATION', force:0, emoji: '💥' },
       ];
       randomEvent = events[Math.floor(Math.random()*events.length)];
-      eventDuration = 120; // frames
+      eventDuration = 120;
     }
 
     function updatePhysics(){
       if (!baby.flying) return;
 
-      // gravity
       baby.vy += 0.5;
 
-      // event effect
       if (randomEvent && randomEvent.type === 'wind') baby.vx += randomEvent.force;
 
-      // integrate
       baby.x += baby.vx;
       baby.y += baby.vy;
       baby.rotation += baby.rotationSpeed;
 
-      // walls of zones
+      // Wall collisions (sides only, NO top collision)
       for (let zone of landingZones) {
         if (!zone.hasWalls) continue;
         const r = baby.size/2;
@@ -730,12 +730,6 @@
           // right wall
           if (baby.x - r <= zone.x + zone.width && baby.x + r > zone.x + zone.width && baby.vx < 0) {
             baby.x = zone.x + zone.width + r; baby.vx *= -0.6; baby.rotationSpeed *= -1;
-          }
-        }
-        // back/top edge
-        if (baby.x >= zone.x && baby.x <= zone.x + zone.width) {
-          if (baby.y + r >= zone.y && baby.y - r < zone.y && baby.vy > 0) {
-            baby.y = zone.y - r; baby.vy *= -0.5; baby.rotationSpeed *= -1;
           }
         }
       }
@@ -763,18 +757,18 @@
       }
 
       if (!landedZone) {
-        showCaption('Rough landing');
-        setTimeout(triggerCPS, 900);
+        showCaption(failCaptions[Math.floor(Math.random() * failCaptions.length)]);
+        setTimeout(triggerCPS, 1500);
         return;
       }
 
       if (landedZone.type === 'bear') {
-        showCaption('Bear got the baby');
-        setTimeout(triggerCPS, 1100);
+        showCaption('🐻 BABY WAS EATEN! 🐻');
+        setTimeout(triggerCPS, 2000);
         return;
       }
 
-      showCaption('Clean landing');
+      showCaption(landingCaptions[Math.floor(Math.random() * landingCaptions.length)]);
       const distance = Math.max(0, Math.floor(baby.x - parent.x - 40));
       const base = distance * landedZone.multiplier;
       let bonus = Math.floor(Math.abs(baby.rotation) * 10);
@@ -785,7 +779,7 @@
       totalDistance += distance;
       updateScoreUi();
 
-      setTimeout(resetForNextThrow, 900);
+      setTimeout(resetForNextThrow, 2000);
     }
 
     function triggerCPS(){
@@ -814,7 +808,6 @@
       randomEvent = null;
       gameState = 'ready';
       yeetPhase = 'power';
-      powerLabel.textContent = 'Tap once to lock power, again for angle.';
       startPowerAnim();
     }
 
@@ -826,9 +819,7 @@
       resetForNextThrow();
     }
 
-    /* =========================
-       RENDERING
-       ========================= */
+    /* RENDERING */
     function drawGround(){
       const h = canvas.clientHeight;
       const w = canvas.clientWidth;
@@ -848,27 +839,25 @@
     function drawParent(){
       ctx.save();
       ctx.translate(parent.x, parent.y);
+      
+      // Scale down to 0.6 (like Angry Birds slingshot)
+      ctx.scale(0.6, 0.6);
 
-      // Legs
       ctx.fillStyle = '#4169E1';
       ctx.fillRect(10, 60, 15, 40);
       ctx.fillRect(35, 60, 15, 40);
 
-      // Shoes
       ctx.fillStyle = '#000';
       ctx.fillRect(8, 95, 20, 8);
       ctx.fillRect(33, 95, 20, 8);
 
-      // Torso
       ctx.fillStyle = '#FF6B9D';
       ctx.fillRect(5, 20, 50, 45);
 
-      // Left arm down
       ctx.fillStyle = '#FFD4A3';
       ctx.fillRect(0, 25, 10, 35);
       ctx.beginPath(); ctx.arc(5, 62, 6, 0, Math.PI*2); ctx.fill();
 
-      // Right arm raised (prep)
       ctx.save();
       ctx.translate(55, 25);
       if (gameState === 'ready' || gameState === 'aiming') ctx.rotate(-45 * Math.PI/180);
@@ -876,26 +865,33 @@
       ctx.beginPath(); ctx.arc(5, 37, 6, 0, Math.PI*2); ctx.fill();
       ctx.restore();
 
-      // Neck + Head
+      // Neck
       ctx.fillStyle = '#FFD4A3';
       ctx.fillRect(22, 10, 16, 12);
+      
+      // Head (draw BEFORE hair so hair doesn't overlap face)
+      ctx.fillStyle = '#FFD4A3';
       ctx.beginPath(); ctx.arc(30, 5, 18, 0, Math.PI*2); ctx.fill();
 
-      // Hair
+      // Hair (only top half - don't draw over face)
       ctx.fillStyle = '#8B4513';
-      ctx.beginPath(); ctx.arc(30, 0, 18, Math.PI, 0, true); ctx.fill();
+      ctx.beginPath(); 
+      ctx.arc(30, -5, 18, Math.PI, Math.PI * 2); // Only top semicircle
+      ctx.fill();
+      
+      // Hair spikes (only on top)
       ctx.strokeStyle = '#8B4513'; ctx.lineWidth = 4;
       for (let i=0;i<5;i++){
         ctx.beginPath();
         const a = Math.PI + (i * Math.PI/4);
         const x = 30 + Math.cos(a)*18;
-        const y = 0 + Math.sin(a)*18;
+        const y = -5 + Math.sin(a)*18;
         ctx.moveTo(x, y);
         ctx.lineTo(x + Math.cos(a)*8, y + Math.sin(a)*8);
         ctx.stroke();
       }
 
-      // Face
+      // Face details
       ctx.fillStyle = '#000';
       ctx.beginPath(); ctx.arc(23, 3, 3, 0, Math.PI*2); ctx.arc(37, 3, 3, 0, Math.PI*2); ctx.fill();
       ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
@@ -915,28 +911,23 @@
       ctx.translate(baby.x, baby.y);
       ctx.rotate(baby.rotation);
 
-      // body
       ctx.fillStyle = '#87CEEB';
       ctx.fillRect(-baby.size/2, -baby.size/2, baby.size, baby.size);
 
-      // head
       ctx.fillStyle = '#FFE4C4';
       ctx.beginPath(); ctx.arc(0, -baby.size/3, baby.size/3, 0, Math.PI*2); ctx.fill();
 
-      // eyes
       ctx.fillStyle = '#000';
       ctx.beginPath();
       ctx.arc(-5, -baby.size/3, 2, 0, Math.PI*2);
       ctx.arc(5, -baby.size/3, 2, 0, Math.PI*2);
       ctx.fill();
 
-      // mouth
       if (baby.flying){
         ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.arc(0, -baby.size/3 + 5, 5, 0, Math.PI); ctx.stroke();
       }
 
-      // diaper
       ctx.fillStyle = '#FFF';
       ctx.fillRect(-baby.size/2, baby.size/4, baby.size, baby.size/4);
 
@@ -949,80 +940,166 @@
         ctx.translate(zone.x, zone.y);
 
         if (zone.type === 'pool') {
-          // water
+          // Water (inside)
           ctx.fillStyle = '#4ECDC4';
-          ctx.fillRect(zone.wallThickness, zone.wallThickness, zone.width - zone.wallThickness*2, zone.height - zone.wallThickness);
+          ctx.fillRect(zone.wallThickness, zone.wallThickness, 
+                     zone.width - (zone.wallThickness * 2), 
+                     zone.height - zone.wallThickness);
 
-          // walls
+          // Pool walls (solid concrete) - left, right, back ONLY
           ctx.fillStyle = '#2C3E50';
+          
+          // Left wall
           ctx.fillRect(0, 0, zone.wallThickness, zone.height);
+          
+          // Right wall  
           ctx.fillRect(zone.width - zone.wallThickness, 0, zone.wallThickness, zone.height);
+          
+          // Back wall (top) - this is visual only, no collision
           ctx.fillRect(0, 0, zone.width, zone.wallThickness);
+          
+          // Front edge (lip/bottom)
           ctx.fillRect(0, zone.height - 4, zone.width, 4);
-
-          // label
-          ctx.font = 'bold 14px Fredoka';
-          ctx.fillStyle = '#FFF'; ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.textAlign = 'center';
-          ctx.strokeText('POOL', zone.width/2, -8); ctx.fillText('POOL', zone.width/2, -8);
-          ctx.strokeText('x' + zone.multiplier, zone.width/2, zone.height + 18);
-          ctx.fillText('x' + zone.multiplier, zone.width/2, zone.height + 18);
-
-        } else if (zone.type === 'crib') {
-          // mattress
-          ctx.fillStyle = '#FFB6C1';
-          ctx.fillRect(10, 20, zone.width - 20, zone.height - 20);
-
-          // frame
-          ctx.fillStyle = '#8B7355';
-          ctx.fillRect(0, 0, zone.wallThickness, zone.height);
-          ctx.fillRect(zone.width - zone.wallThickness, 0, zone.wallThickness, zone.height);
-          ctx.fillRect(0, 0, zone.width, zone.wallThickness);
-          ctx.fillRect(0, zone.height - 6, zone.width, 6);
-
-          // decorative bars
-          ctx.strokeStyle = '#FFF'; ctx.lineWidth = 3;
-          for (let i=1;i<7;i++){
-            const x = 15 + i*18;
-            ctx.beginPath(); ctx.moveTo(x,8); ctx.lineTo(x,60); ctx.stroke();
+          
+          // Water ripples INSIDE the pool
+          ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+          ctx.lineWidth = 2;
+          const innerWidth = zone.width - (zone.wallThickness * 2);
+          const rippleSpacing = innerWidth / 4;
+          for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.arc(zone.wallThickness + rippleSpacing * (i + 0.5), 
+                   zone.wallThickness + 15, 
+                   8, 0, Math.PI);
+            ctx.stroke();
           }
 
-          // pillow
+          // Label
+          ctx.font = 'bold 16px Fredoka';
           ctx.fillStyle = '#FFF';
-          ctx.beginPath(); ctx.ellipse(zone.width/2, 35, 25, 15, 0, 0, Math.PI*2); ctx.fill();
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 3;
+          ctx.textAlign = 'center';
+          ctx.strokeText('POOL', zone.width/2, -10);
+          ctx.fillText('POOL', zone.width/2, -10);
+          ctx.strokeText('x' + zone.multiplier, zone.width/2, zone.height + 20);
+          ctx.fillText('x' + zone.multiplier, zone.width/2, zone.height + 20);
 
-          // label
-          ctx.font = 'bold 14px Fredoka';
-          ctx.fillStyle = '#FFF'; ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.textAlign = 'center';
-          ctx.strokeText('CRIB', zone.width/2, -8); ctx.fillText('CRIB', zone.width/2, -8);
-          ctx.strokeText('x' + zone.multiplier, zone.width/2, zone.height + 18);
-          ctx.fillText('x' + zone.multiplier, zone.width/2, zone.height + 18);
+        } else if (zone.type === 'crib') {
+          // Mattress (pink)
+          ctx.fillStyle = '#FFB6C1';
+          ctx.fillRect(zone.wallThickness + 2, zone.wallThickness + 10, 
+                      zone.width - (zone.wallThickness * 2) - 4, 
+                      zone.height - zone.wallThickness - 16);
+
+          // Solid wooden frame - left, right, back ONLY
+          ctx.fillStyle = '#8B7355';
+          
+          // Left rail (solid)
+          ctx.fillRect(0, 0, zone.wallThickness, zone.height);
+          
+          // Right rail (solid)
+          ctx.fillRect(zone.width - zone.wallThickness, 0, zone.wallThickness, zone.height);
+          
+          // Back rail (top) - visual only, no collision
+          ctx.fillRect(0, 0, zone.width, zone.wallThickness);
+          
+          // Bottom frame
+          ctx.fillRect(0, zone.height - 6, zone.width, 6);
+
+          // Decorative bars INSIDE the frame
+          ctx.strokeStyle = '#FFF';
+          ctx.lineWidth = 2;
+          const innerWidth = zone.width - (zone.wallThickness * 2);
+          const barSpacing = innerWidth / 6;
+          for (let i = 1; i < 6; i++) {
+            const x = zone.wallThickness + (barSpacing * i);
+            ctx.beginPath();
+            ctx.moveTo(x, zone.wallThickness + 2);
+            ctx.lineTo(x, zone.height - 8);
+            ctx.stroke();
+          }
+
+          // Pillow
+          ctx.fillStyle = '#FFF';
+          ctx.beginPath();
+          ctx.ellipse(zone.width/2, zone.wallThickness + 18, 20, 12, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Label
+          ctx.font = 'bold 16px Fredoka';
+          ctx.fillStyle = '#FFF';
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 3;
+          ctx.textAlign = 'center';
+          ctx.strokeText('CRIB', zone.width/2, -10);
+          ctx.fillText('CRIB', zone.width/2, -10);
+          ctx.strokeText('x' + zone.multiplier, zone.width/2, zone.height + 20);
+          ctx.fillText('x' + zone.multiplier, zone.width/2, zone.height + 20);
 
         } else if (zone.type === 'bear') {
           ctx.fillStyle = '#8B4513';
 
-          // body
           ctx.beginPath(); ctx.ellipse(zone.width/2, zone.height - 30, 50, 60, 0, 0, Math.PI*2); ctx.fill();
-          // head
           ctx.beginPath(); ctx.arc(zone.width/2, 30, 40, 0, Math.PI*2); ctx.fill();
-          // ears
           ctx.beginPath();
           ctx.arc(zone.width/2 - 30, 10, 15, 0, Math.PI*2);
           ctx.arc(zone.width/2 + 30, 10, 15, 0, Math.PI*2);
           ctx.fill();
-          // snout
+          
           ctx.fillStyle = '#D2691E';
           ctx.beginPath(); ctx.ellipse(zone.width/2, 40, 20, 15, 0, 0, Math.PI*2); ctx.fill();
-          // eyes
+          
           ctx.fillStyle = '#000';
-          ctx.beginPath(); ctx.arc(zone.width/2 - 15, 20, 5, 0, Math.PI*2);
-          ctx.arc(zone.width/2 + 15, 20, 5, 0, Math.PI*2); ctx.fill();
-          // mouth
+          ctx.beginPath(); 
+          ctx.arc(zone.width/2 - 15, 20, 5, 0, Math.PI*2);
+          ctx.arc(zone.width/2 + 15, 20, 5, 0, Math.PI*2); 
+          ctx.fill();
+          
           ctx.fillStyle = '#000';
           ctx.beginPath(); ctx.ellipse(zone.width/2, 45, 15, 12, 0, 0, Math.PI*2); ctx.fill();
-          // label
-          ctx.font = 'bold 14px Fredoka';
-          ctx.fillStyle = '#FFCDD2'; ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.textAlign = 'center';
-          ctx.strokeText('BEAR', zone.width/2, -8); ctx.fillText('BEAR', zone.width/2, -8);
+          
+          // Teeth
+          ctx.fillStyle = '#FFF';
+          for (let i = 0; i < 5; i++) {
+            ctx.beginPath();
+            ctx.moveTo(zone.width/2 - 12 + i * 6, 40);
+            ctx.lineTo(zone.width/2 - 12 + i * 6, 48);
+            ctx.lineTo(zone.width/2 - 9 + i * 6, 44);
+            ctx.fill();
+          }
+          
+          // Arms reaching
+          ctx.fillStyle = '#8B4513';
+          ctx.beginPath();
+          ctx.ellipse(zone.width/2 - 50, zone.height - 40, 15, 30, -30 * Math.PI / 180, 0, Math.PI * 2);
+          ctx.ellipse(zone.width/2 + 50, zone.height - 40, 15, 30, 30 * Math.PI / 180, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Claws
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 3;
+          ctx.lineCap = 'round';
+          for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.moveTo(zone.width/2 - 60 + i * 5, zone.height - 50);
+            ctx.lineTo(zone.width/2 - 65 + i * 5, zone.height - 60);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(zone.width/2 + 60 - i * 5, zone.height - 50);
+            ctx.lineTo(zone.width/2 + 65 - i * 5, zone.height - 60);
+            ctx.stroke();
+          }
+
+          // Label (warning!)
+          ctx.font = 'bold 16px Fredoka';
+          ctx.fillStyle = '#FF0000';
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 3;
+          ctx.textAlign = 'center';
+          ctx.strokeText('🚨 BEAR 🚨', zone.width/2, -10);
+          ctx.fillText('🚨 BEAR 🚨', zone.width/2, -10);
         }
 
         ctx.restore();
@@ -1032,20 +1109,21 @@
     function drawRandomEvent(){
       if (!randomEvent || eventDuration <= 0) return;
       eventDuration--;
-      ctx.font = 'bold 18px Fredoka';
+      ctx.font = 'bold 24px Fredoka';
       ctx.textAlign = 'center';
       ctx.fillStyle = '#fff';
       ctx.strokeStyle = '#000';
       ctx.lineWidth = 4;
-      ctx.strokeText(randomEvent.name, canvas.clientWidth/2, 96);
-      ctx.fillText(randomEvent.name, canvas.clientWidth/2, 96);
+      const text = randomEvent.emoji + ' ' + randomEvent.name + ' ' + randomEvent.emoji;
+      ctx.strokeText(text, canvas.clientWidth/2, 100);
+      ctx.fillText(text, canvas.clientWidth/2, 100);
 
       if (randomEvent.type === 'wind') {
         for (let i=0;i<10;i++){
-          ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+          ctx.strokeStyle = 'rgba(255,255,255,0.5)';
           ctx.lineWidth = 2;
           ctx.beginPath();
-          const y = 140 + i*40;
+          const y = 150 + i*50;
           const off = (Date.now()/10 + i*20) % canvas.clientWidth;
           ctx.moveTo(off, y); ctx.lineTo(off + 30, y);
           ctx.stroke();
@@ -1054,10 +1132,10 @@
       if (randomEvent.type === 'helicopter') {
         const x = canvas.clientWidth/2 + Math.sin(Date.now()/500)*100;
         const y = 150;
-        ctx.fillStyle = '#E53935';
+        ctx.fillStyle = '#FF0000';
         ctx.fillRect(x-30, y, 60, 20);
         ctx.fillRect(x-5, y-15, 10, 15);
-        ctx.strokeStyle = '#111'; ctx.lineWidth = 3;
+        ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
         ctx.beginPath(); ctx.moveTo(x-40, y-15); ctx.lineTo(x+40, y-15); ctx.stroke();
       }
     }
@@ -1076,7 +1154,6 @@
       requestAnimationFrame(gameLoop);
     }
 
-    // ensure initial crisp sizing when fonts/assets load
     window.addEventListener('load', resizeCanvas);
   </script>
 </body>
