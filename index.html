@@ -363,7 +363,7 @@
       <div id="cpsOverlay">
         <div class="cps-wrap">
           <div class="cps-title">🚨 CPS IS HERE! 🚨</div>
-          <div class="cps-subtitle">That was NOT a safe landing!</div>
+          <div class="cps-subtitle">Bro said "Landing Optional 💀"!</div>
           <div class="cps-stats">
             <div>Final Score: <span id="cpsScore">0</span></div>
             <div>Total Distance: <span id="cpsDistance">0</span> ft</div>
@@ -520,7 +520,7 @@
     function toggleAudio() {
       audioEnabled = !audioEnabled;
       if (!audioEnabled) bgMusic.pause();
-      else bgMusic.play().catch(()=>{});
+      else bgMusic.play();
       setAudioUi();
     }
 
@@ -531,7 +531,7 @@
       e.preventDefault();
       startScreen.style.display = 'none';
       gameState = 'ready';
-      if (audioEnabled) bgMusic.play().catch(()=>{});
+      if (audioEnabled) bgMusic.play();
       startPowerAnim();
       requestAnimationFrame(gameLoop);
     }, {passive:true});
@@ -625,9 +625,9 @@
 
     const failCaptions = [
       "YIKES... 😬",
-      "NOT IDEAL... 🙈",
-      "LEARNING EXPERIENCE! 📚",
-      "ROOKIE MISTAKE 🤷",
+      "CHILD SUPPORT AVOIDED... 🙈",
+      "FOLDED THAT KID! 📚",
+      "NOT GIVING 'LOVING PARENT' 🤷",
       "OOPSIE DAISY 🌼"
     ];
 
@@ -660,39 +660,89 @@
     function updatePhysics(){
       if (!baby.flying) return;
 
+      // Store previous position for continuous collision detection
+      const prevX = baby.x;
+      const prevY = baby.y;
+
+      // Apply gravity
       baby.vy += 0.5;
 
+      // Apply wind event
       if (randomEvent && randomEvent.type === 'wind') baby.vx += randomEvent.force;
 
+      // Calculate new position
       baby.x += baby.vx;
       baby.y += baby.vy;
       baby.rotation += baby.rotationSpeed;
 
-      // Wall collisions
+      // Ground collision - check first since it ends the physics
+      const groundY = canvasHeight - 100;
+      if (baby.y >= groundY) {
+        baby.y = groundY;
+        checkLanding();
+        return;
+      }
+
+      // Wall collision detection for pool and crib
       for (let zone of landingZones) {
         if (!zone.hasWalls) continue;
-        const r = baby.size/2;
 
-        if (baby.y + r >= zone.y && baby.y - r <= zone.y + zone.height) {
-          if (baby.x + r >= zone.x && baby.x - r < zone.x && baby.vx > 0) {
-            baby.x = zone.x - r; 
-            baby.vx *= -0.6;
+        const babyRadius = baby.size / 2;
+        
+        // Define the solid walls (left, right, bottom - NO TOP)
+        const leftWall = zone.x + zone.wallThickness;
+        const rightWall = zone.x + zone.width - zone.wallThickness;
+        const bottomWall = zone.y + zone.height;
+        const topWall = zone.y; // This is OPEN - baby can enter from above
+
+        // Check if baby is within the vertical range of the zone (including space above for entry)
+        const inVerticalRange = baby.y + babyRadius >= topWall && baby.y - babyRadius <= bottomWall;
+
+        if (inVerticalRange) {
+          
+          // LEFT WALL COLLISION
+          // From outside (moving right) OR from inside (moving left after bouncing off right wall)
+          if (baby.vx > 0 && prevX + babyRadius <= leftWall && baby.x + babyRadius > leftWall) {
+            // Coming from left side (outside) - bounce back left
+            baby.x = leftWall - babyRadius;
+            baby.vx *= -0.7;
+            baby.rotationSpeed *= -1;
+          } else if (baby.vx < 0 && prevX - babyRadius >= leftWall && baby.x - babyRadius < leftWall) {
+            // Coming from right side (inside) - bounce back right
+            baby.x = leftWall + babyRadius;
+            baby.vx *= -0.7;
             baby.rotationSpeed *= -1;
           }
-          if (baby.x - r <= zone.x + zone.width && baby.x + r > zone.x + zone.width && baby.vx < 0) {
-            baby.x = zone.x + zone.width + r; 
-            baby.vx *= -0.6;
+          
+          // RIGHT WALL COLLISION
+          // From outside (moving left) OR from inside (moving right)
+          if (baby.vx > 0 && prevX - babyRadius < rightWall && baby.x - babyRadius >= rightWall) {
+            // Coming from left side (inside) - bounce back left
+            baby.x = rightWall + babyRadius;
+            baby.vx *= -0.7;
             baby.rotationSpeed *= -1;
+          } else if (baby.vx < 0 && prevX + babyRadius >= rightWall && baby.x + babyRadius < rightWall) {
+            // Coming from right side (outside) - bounce back right
+            baby.x = rightWall - babyRadius;
+            baby.vx *= -0.7;
+            baby.rotationSpeed *= -1;
+          }
+
+          // BOTTOM WALL COLLISION - inside container, hitting bottom
+          // Only check if baby is horizontally inside the container
+          if (baby.x > leftWall && baby.x < rightWall) {
+            if (prevY + babyRadius <= bottomWall && baby.y + babyRadius > bottomWall && baby.vy > 0) {
+              // Hit bottom of pool/crib - THIS COUNTS AS A SUCCESSFUL LANDING!
+              baby.y = bottomWall;
+              baby.flying = false;
+              checkLanding();
+              return; // Stop physics and award points
+            }
           }
         }
       }
 
-      // ground (dynamic based on canvas height)
-      if (baby.y >= canvasHeight - 100) {
-        checkLanding();
-      }
-
-      // off screen
+      // Screen boundaries
       if (baby.x < 0 || baby.x > canvasWidth || baby.y > canvasHeight) {
         triggerCPS();
       }
@@ -703,9 +753,10 @@
 
       let landedZone = null;
       for (let zone of landingZones) {
-        if (baby.x >= zone.x + 5 && baby.x <= zone.x + zone.width - 5 &&
-            baby.y >= zone.y && baby.y <= zone.y + zone.height) {
-          landedZone = zone; break;
+        // Only check horizontal position - baby is already at ground level
+        if (baby.x >= zone.x && baby.x <= zone.x + zone.width) {
+          landedZone = zone; 
+          break;
         }
       }
 
@@ -716,11 +767,12 @@
       }
 
       if (landedZone.type === 'bear') {
-        showCaption('🐻 BABY WAS EATEN! 🐻');
+        showCaption('🐻 BEAR DELETED BABY! 🐻');
         setTimeout(triggerCPS, 2000);
         return;
       }
 
+      // Pool or Crib = SUCCESS!
       showCaption(landingCaptions[Math.floor(Math.random() * landingCaptions.length)]);
       const distance = Math.max(0, Math.floor((baby.x - parent.x - 25 * scale) / scale));
       const base = distance * landedZone.multiplier;
