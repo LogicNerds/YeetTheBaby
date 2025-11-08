@@ -11,27 +11,30 @@
        RESET & THEME
        ========================= */
     *, *::before, *::after { box-sizing: border-box; }
-    html, body { height: 100%; }
+    html, body { height: 100%; margin: 0; padding: 0; }
     body {
-      margin: 0;
       font-family: 'Fredoka', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: #E8D5F2;
+      background: #1a1a1a;
       color: #111;
       -webkit-tap-highlight-color: transparent;
       overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     :root{
       --vh: 1vh;
-      --max-app-width: 720px;
-      --ui-gap: clamp(8px, 2vmin, 16px);
+      --phone-width: 375px;
+      --phone-height: 667px;
+      --ui-gap: 8px;
       --radius: 16px;
       --shadow: 0 8px 24px rgba(0,0,0,0.25);
 
-      --title-size: clamp(28px, 6.5vw, 54px);
-      --tagline-size: clamp(14px, 3.5vw, 22px);
-      --label-size: clamp(12px, 3vw, 18px);
-      --btn-size: clamp(16px, 4.5vw, 22px);
+      --title-size: 36px;
+      --tagline-size: 16px;
+      --label-size: 14px;
+      --btn-size: 18px;
 
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --safe-top: env(safe-area-inset-top, 0px);
@@ -45,18 +48,22 @@
     }
 
     #app {
-      width: 100%;
-      height: calc(var(--vh) * 100);
+      width: var(--phone-width);
+      height: var(--phone-height);
+      max-height: 100vh;
       display: grid;
-      grid-template-rows: 1fr minmax(110px, 24vh);
-      place-items: stretch;
-      max-width: var(--max-app-width);
-      margin: 0 auto;
+      grid-template-rows: 1fr 150px;
       background: #E8D5F2;
-      box-shadow: var(--shadow);
+      box-shadow: 0 0 50px rgba(0,0,0,0.5);
       position: relative;
-      padding-bottom: var(--safe-bottom);
-      padding-top: var(--safe-top);
+      overflow: hidden;
+    }
+
+    @media (max-width: 414px) {
+      #app {
+        width: 100vw;
+        height: 100vh;
+      }
     }
 
     #gameArea {
@@ -77,7 +84,7 @@
 
     #ui {
       position: absolute;
-      top: calc(12px + var(--safe-top));
+      top: 12px;
       left: 12px;
       z-index: 10;
       color: #fff;
@@ -85,12 +92,12 @@
       display: grid;
       gap: 8px;
       font-weight: 700;
-      font-size: clamp(12px, 3.2vw, 18px);
+      font-size: 14px;
     }
 
     .hud-badge {
       display: inline-block;
-      padding: 8px 12px;
+      padding: 6px 10px;
       border-radius: 12px;
       border: 3px solid #fff;
       box-shadow: 0 3px 0 rgba(0,0,0,0.25);
@@ -100,10 +107,10 @@
 
     .top-actions {
       position: absolute;
-      top: calc(12px + var(--safe-top));
+      top: 12px;
       right: 12px;
       display: flex;
-      gap: 10px;
+      gap: 8px;
       z-index: 12;
     }
 
@@ -111,8 +118,8 @@
       background: rgba(255,255,255,0.9);
       border: 2px solid var(--accent-1);
       border-radius: 999px;
-      padding: 8px 12px;
-      font-size: clamp(12px, 3vw, 16px);
+      padding: 6px 10px;
+      font-size: 12px;
       font-weight: 700;
       cursor: pointer;
       user-select: none;
@@ -129,8 +136,8 @@
       color: var(--accent-1);
       border: 6px solid var(--accent-1);
       border-radius: 20px;
-      padding: clamp(10px, 3.5vw, 22px) clamp(14px, 4.5vw, 28px);
-      font-size: clamp(16px, 5vw, 28px);
+      padding: 12px 18px;
+      font-size: 20px;
       font-weight: 800;
       text-align: center;
       box-shadow: 0 8px 0 rgba(0,0,0,0.25);
@@ -186,7 +193,7 @@
       border-radius: 16px;
       font-weight: 800;
       font-size: var(--btn-size);
-      padding: clamp(10px, 3.2vw, 16px) clamp(18px, 6vw, 28px);
+      padding: 12px 24px;
       cursor: pointer;
       box-shadow: 0 6px 0 rgba(0,0,0,0.3);
       transition: transform 0.08s ease, box-shadow 0.08s ease;
@@ -195,7 +202,7 @@
     .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.3); }
     .credits {
       margin-top: 8px;
-      font-size: clamp(12px, 3vw, 16px);
+      font-size: 14px;
       opacity: 0.9;
     }
 
@@ -204,41 +211,36 @@
       display: grid;
       grid-template-columns: 1fr auto;
       align-items: center;
-      gap: var(--ui-gap);
-      padding: clamp(8px, 2.5vmin, 16px);
+      gap: 8px;
+      padding: 12px;
       box-shadow: 0 -8px 24px rgba(0,0,0,0.25);
-    }
-    @media (max-width: 560px) {
-      #controlArea {
-        grid-template-columns: 1fr;
-      }
     }
 
     #yeetScale {
       background: rgba(255,255,255,0.95);
       border: 4px solid var(--accent-1);
       border-radius: var(--radius);
-      padding: clamp(8px, 2.5vmin, 16px);
+      padding: 10px;
       box-shadow: 0 6px 0 rgba(0,0,0,0.25);
       display: grid;
-      gap: 8px;
+      gap: 6px;
     }
     .scale-title {
       text-align: center;
       color: var(--accent-1);
       font-weight: 800;
-      font-size: clamp(14px, 3.8vw, 20px);
+      font-size: 16px;
     }
     .bar-labels {
       display: flex;
       justify-content: space-between;
-      font-size: clamp(10px, 2.8vw, 13px);
+      font-size: 11px;
       font-weight: 700;
       color: var(--accent-1);
     }
     .scale-bar, .angle-bar {
       width: 100%;
-      height: clamp(22px, 5.5vmin, 34px);
+      height: 26px;
       border-radius: 999px;
       position: relative;
       overflow: hidden;
@@ -261,14 +263,15 @@
     .angle-bar .indicator { box-shadow: 0 0 10px rgba(255,255,255,0.9), 0 0 20px var(--mint-1); }
     .scale-note {
       text-align: center;
-      font-size: clamp(11px, 3vw, 14px);
+      font-size: 12px;
       color: #555;
     }
 
     #yeetBtn {
-      justify-self: stretch;
-      align-self: stretch;
-      min-height: clamp(44px, 8.5vh, 70px);
+      min-height: 50px;
+      min-width: 80px;
+      font-size: 18px;
+      padding: 12px 16px;
     }
 
     /* CPS Overlay with flashing red animation */
@@ -291,7 +294,7 @@
     #cpsOverlay.active { display: grid; place-items: center; }
     .cps-wrap { display: grid; gap: 14px; place-items: center; text-align: center; }
     .cps-title {
-      font-size: clamp(22px, 6vw, 36px);
+      font-size: 28px;
       font-weight: 900;
       letter-spacing: 0.5px;
       text-shadow: 3px 3px 0 rgba(0,0,0,0.35);
@@ -305,38 +308,18 @@
     }
     
     .cps-subtitle {
-      font-size: clamp(14px, 3.8vw, 20px);
+      font-size: 16px;
       opacity: 0.95;
     }
     .cps-stats {
       background: rgba(255,255,255,0.18);
-      padding: clamp(10px, 3.2vw, 16px) clamp(14px, 4.2vw, 22px);
+      padding: 12px 16px;
       border-radius: 12px;
       display: grid;
       gap: 6px;
-      font-size: clamp(14px, 3.8vw, 18px);
+      font-size: 16px;
       font-weight: 700;
       min-width: 60%;
-    }
-
-    #rotateOverlay {
-      position: fixed;
-      inset: 0;
-      background: #0f0f12;
-      color: #fff;
-      display: none;
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 24px;
-    }
-    #rotateOverlay.show { display: flex; }
-    .rotate-msg {
-      display: grid;
-      gap: 10px;
-      font-size: clamp(16px, 4.5vw, 22px);
-      font-weight: 800;
     }
 
     .cloud {
@@ -355,13 +338,6 @@
   </style>
 </head>
 <body>
-  <div id="rotateOverlay">
-    <div class="rotate-msg">
-      <div>Best played in portrait.</div>
-      <div>Please rotate your device upright.</div>
-    </div>
-  </div>
-
   <div id="app">
     <div id="gameArea">
       <div class="cloud" style="top: 8%; left: 8%; width: 92px; height: 46px;"></div>
@@ -430,24 +406,6 @@
   </audio>
 
   <script>
-    /* VIEWPORT & ORIENTATION */
-    function setVh() {
-      document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
-    }
-    setVh();
-    window.addEventListener('resize', setVh);
-    window.addEventListener('orientationchange', setVh);
-
-    const rotateOverlay = document.getElementById('rotateOverlay');
-    function enforcePortrait() {
-      const isLandscape = window.innerWidth > window.innerHeight;
-      const isMobile = window.innerWidth < 900;
-      rotateOverlay.classList.toggle('show', isMobile && isLandscape);
-    }
-    enforcePortrait();
-    window.addEventListener('resize', enforcePortrait);
-    window.addEventListener('orientationchange', enforcePortrait);
-
     /* GAME STATE & ELEMENTS */
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d', { alpha: true });
@@ -483,19 +441,24 @@
 
     let audioEnabled = true;
 
-    const parent = { x: 50, y: 0, width: 40, height: 60 };
+    // FIXED POSITIONS - 25ft spacing (94px at 3.75px/ft)
+    // Parent at 5ft (19px), all objects level at y=400
+    const parent = { x: 19, y: 400, width: 40, height: 60 };
     let baby = {
       x: 0, y: 0, vx: 0, vy: 0,
-      rotation: 0, rotationSpeed: 0, size: 20, flying: false
+      rotation: 0, rotationSpeed: 0, size: 12, flying: false
     };
 
+    // Pool at 40ft (150px = 113+37.5)
+    // Crib at 65ft (244px = 207+37.5)  
+    // Bear at 90ft (338px = 301+37.5) - half size
     let landingZones = [
-      { x: 0, y: 0, width: 300, height: 60, type: 'pool', name: 'POOL', multiplier: 2, color: '#4ECDC4', hasWalls: true, wallThickness: 8 },
-      { x: 0, y: 0, width: 300, height: 70, type: 'crib', name: 'CRIB', multiplier: 5, color: '#FFB6C1', hasWalls: true, wallThickness: 6 },
-      { x: 0, y: 0, width: 300, height: 120, type: 'bear', name: 'BEAR', multiplier: -1, color: '#8B4513', hasWalls: false }
+      { x: 100, y: 400, width: 50, height: 18, type: 'pool', name: 'POOL', multiplier: 2, color: '#4ECDC4', hasWalls: true, wallThickness: 4 },
+      { x: 225, y: 400, width: 50, height: 18, type: 'crib', name: 'CRIB', multiplier: 5, color: '#FFB6C1', hasWalls: true, wallThickness: 3 },
+      { x: 310, y: 400, width: 20, height: 25, type: 'bear', name: 'BEAR', multiplier: -1, color: '#8B4513', hasWalls: false }
     ];
 
-    /* RESPONSIVE CANVAS */
+    /* CANVAS SETUP */
     function resizeCanvas() {
       const area = document.getElementById('gameArea');
       const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
@@ -511,49 +474,13 @@
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      updateLandingZonePositions(cssW, cssH);
-
-      parent.y = cssH - 150;
       if (!baby.flying) {
-        baby.x = parent.x + 40;
+        baby.x = parent.x + 25;
         baby.y = parent.y;
       }
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
-
-    function updateLandingZonePositions(w, h) {
-      const groundY = h - 120;
-      
-      // Scale to 0.2 (20% - double the previous 0.1)
-      const scale = Math.min(w / 1200, 0.2);
-      
-      // Parent is at x=50 (far left)
-      // Pool: 35% across (between parent and crib)
-      const poolX = w * 0.35;
-      // Crib: 55% across (center-ish)
-      const cribX = w * 0.55;
-      // Bear: 80% across (far right)
-      const bearX = w * 0.80;
-      
-      // Pool: 300 wide (same as bear)
-      landingZones[0].x = poolX - (50 * scale);
-      landingZones[0].y = groundY - 25;
-      landingZones[0].width = 400 * scale;
-      landingZones[0].height = 40;
-
-      // Crib: 300 wide (same as bear)
-      landingZones[1].x = cribX - (50 * scale);
-      landingZones[1].y = groundY - 25;
-      landingZones[1].width = 400 * scale;
-      landingZones[1].height = 45;
-
-      // Bear: 300 wide (unchanged)
-      landingZones[2].x = bearX - (50 * scale);
-      landingZones[2].y = groundY - 55;
-      landingZones[2].width = 300 * scale;
-      landingZones[2].height = 75;
-    }
 
     /* AUDIO */
     function setAudioUi() {
@@ -676,13 +603,9 @@
     ];
 
     function launchBaby(){
-      const velocity = (powerValue / 100) * 20 + 8;
+      const velocity = (powerValue / 100) * 8 + 5;
 
-      // Angle bar: left (0) = down, right (100) = up
-      // Convert to degrees: 0 = -45° (down-forward), 50 = 0° (straight), 100 = 45° (up-forward)
-      // This ensures baby ALWAYS goes forward (positive vx)
-      const angleDeg = -45 + (angleValue * 0.9); // Range: -45° to +45°
-
+      const angleDeg = -45 + (angleValue * 0.9);
       const angleRad = angleDeg * Math.PI / 180;
 
       baby.vx = Math.cos(angleRad) * velocity;
@@ -716,31 +639,32 @@
       baby.y += baby.vy;
       baby.rotation += baby.rotationSpeed;
 
-      // Wall collisions (sides only, NO top collision)
+      // Wall collisions
       for (let zone of landingZones) {
         if (!zone.hasWalls) continue;
         const r = baby.size/2;
 
-        // vertical overlap range
         if (baby.y + r >= zone.y && baby.y - r <= zone.y + zone.height) {
-          // left wall
           if (baby.x + r >= zone.x && baby.x - r < zone.x && baby.vx > 0) {
-            baby.x = zone.x - r; baby.vx *= -0.6; baby.rotationSpeed *= -1;
+            baby.x = zone.x - r; 
+            baby.vx *= -0.6;
+            baby.rotationSpeed *= -1;
           }
-          // right wall
           if (baby.x - r <= zone.x + zone.width && baby.x + r > zone.x + zone.width && baby.vx < 0) {
-            baby.x = zone.x + zone.width + r; baby.vx *= -0.6; baby.rotationSpeed *= -1;
+            baby.x = zone.x + zone.width + r; 
+            baby.vx *= -0.6;
+            baby.rotationSpeed *= -1;
           }
         }
       }
 
-      // ground
-      if (baby.y >= canvas.clientHeight - 120) {
+      // ground (fixed at 517px from top)
+      if (baby.y >= 517) {
         checkLanding();
       }
 
       // off screen
-      if (baby.x < 0 || baby.x > canvas.clientWidth || baby.y > canvas.clientHeight) {
+      if (baby.x < 0 || baby.x > 375 || baby.y > 517) {
         triggerCPS();
       }
     }
@@ -750,7 +674,7 @@
 
       let landedZone = null;
       for (let zone of landingZones) {
-        if (baby.x >= zone.x + 10 && baby.x <= zone.x + zone.width - 10 &&
+        if (baby.x >= zone.x + 5 && baby.x <= zone.x + zone.width - 5 &&
             baby.y >= zone.y && baby.y <= zone.y + zone.height) {
           landedZone = zone; break;
         }
@@ -769,7 +693,7 @@
       }
 
       showCaption(landingCaptions[Math.floor(Math.random() * landingCaptions.length)]);
-      const distance = Math.max(0, Math.floor(baby.x - parent.x - 40));
+      const distance = Math.max(0, Math.floor(baby.x - parent.x - 25));
       const base = distance * landedZone.multiplier;
       let bonus = Math.floor(Math.abs(baby.rotation) * 10);
       if (randomEvent) bonus += 500;
@@ -801,7 +725,7 @@
     }
 
     function resetForNextThrow(){
-      baby.x = parent.x + 40;
+      baby.x = parent.x + 25;
       baby.y = parent.y;
       baby.vx = 0; baby.vy = 0;
       baby.rotation = 0; baby.flying = false;
@@ -821,17 +745,15 @@
 
     /* RENDERING */
     function drawGround(){
-      const h = canvas.clientHeight;
-      const w = canvas.clientWidth;
       ctx.fillStyle = '#90EE90';
-      ctx.fillRect(0, h - 100, w, 100);
+      ctx.fillRect(0, 417, 375, 100);
 
       ctx.strokeStyle = '#228B22';
       ctx.lineWidth = 2;
-      for (let i = 0; i < w; i += 20) {
+      for (let i = 0; i < 375; i += 20) {
         ctx.beginPath();
-        ctx.moveTo(i, h - 100);
-        ctx.lineTo(i + 5, h - 110);
+        ctx.moveTo(i, 417);
+        ctx.lineTo(i + 5, 407);
         ctx.stroke();
       }
     }
@@ -840,8 +762,7 @@
       ctx.save();
       ctx.translate(parent.x, parent.y);
       
-      // Scale down to 0.6 (like Angry Birds slingshot)
-      ctx.scale(0.6, 0.6);
+      ctx.scale(0.3, 0.3);
 
       ctx.fillStyle = '#4169E1';
       ctx.fillRect(10, 60, 15, 40);
@@ -865,21 +786,15 @@
       ctx.beginPath(); ctx.arc(5, 37, 6, 0, Math.PI*2); ctx.fill();
       ctx.restore();
 
-      // Neck
       ctx.fillStyle = '#FFD4A3';
       ctx.fillRect(22, 10, 16, 12);
-      
-      // Head (draw BEFORE hair so hair doesn't overlap face)
-      ctx.fillStyle = '#FFD4A3';
       ctx.beginPath(); ctx.arc(30, 5, 18, 0, Math.PI*2); ctx.fill();
 
-      // Hair (only top half - don't draw over face)
       ctx.fillStyle = '#8B4513';
       ctx.beginPath(); 
-      ctx.arc(30, -5, 18, Math.PI, Math.PI * 2); // Only top semicircle
+      ctx.arc(30, -5, 18, Math.PI, Math.PI * 2);
       ctx.fill();
       
-      // Hair spikes (only on top)
       ctx.strokeStyle = '#8B4513'; ctx.lineWidth = 4;
       for (let i=0;i<5;i++){
         ctx.beginPath();
@@ -891,13 +806,11 @@
         ctx.stroke();
       }
 
-      // Face details
       ctx.fillStyle = '#000';
       ctx.beginPath(); ctx.arc(23, 3, 3, 0, Math.PI*2); ctx.arc(37, 3, 3, 0, Math.PI*2); ctx.fill();
       ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(30, 10, 8, 0.2, Math.PI-0.2); ctx.stroke();
 
-      // Eyebrows
       ctx.beginPath();
       ctx.moveTo(18,-2); ctx.lineTo(28,0);
       ctx.moveTo(42,-2); ctx.lineTo(32,0);
@@ -940,28 +853,17 @@
         ctx.translate(zone.x, zone.y);
 
         if (zone.type === 'pool') {
-          // Water (inside)
           ctx.fillStyle = '#4ECDC4';
           ctx.fillRect(zone.wallThickness, zone.wallThickness, 
                      zone.width - (zone.wallThickness * 2), 
                      zone.height - zone.wallThickness);
 
-          // Pool walls (solid concrete) - left, right, back ONLY
           ctx.fillStyle = '#2C3E50';
-          
-          // Left wall
           ctx.fillRect(0, 0, zone.wallThickness, zone.height);
-          
-          // Right wall  
           ctx.fillRect(zone.width - zone.wallThickness, 0, zone.wallThickness, zone.height);
-          
-          // Back wall (top) - this is visual only, no collision
           ctx.fillRect(0, 0, zone.width, zone.wallThickness);
-          
-          // Front edge (lip/bottom)
           ctx.fillRect(0, zone.height - 4, zone.width, 4);
           
-          // Water ripples INSIDE the pool
           ctx.strokeStyle = 'rgba(255,255,255,0.5)';
           ctx.lineWidth = 2;
           const innerWidth = zone.width - (zone.wallThickness * 2);
@@ -969,12 +871,11 @@
           for (let i = 0; i < 3; i++) {
             ctx.beginPath();
             ctx.arc(zone.wallThickness + rippleSpacing * (i + 0.5), 
-                   zone.wallThickness + 15, 
+                   zone.wallThickness + 1, 
                    8, 0, Math.PI);
             ctx.stroke();
           }
 
-          // Label
           ctx.font = 'bold 16px Fredoka';
           ctx.fillStyle = '#FFF';
           ctx.strokeStyle = '#000';
@@ -986,28 +887,17 @@
           ctx.fillText('x' + zone.multiplier, zone.width/2, zone.height + 20);
 
         } else if (zone.type === 'crib') {
-          // Mattress (pink)
           ctx.fillStyle = '#FFB6C1';
-          ctx.fillRect(zone.wallThickness + 2, zone.wallThickness + 10, 
-                      zone.width - (zone.wallThickness * 2) - 4, 
-                      zone.height - zone.wallThickness - 16);
+          ctx.fillRect(zone.wallThickness - 3, zone.wallThickness + 2, 
+            zone.width - (zone.wallThickness * 2) - 2, 
+            zone.height - zone.wallThickness - 4);
 
-          // Solid wooden frame - left, right, back ONLY
           ctx.fillStyle = '#8B7355';
-          
-          // Left rail (solid)
           ctx.fillRect(0, 0, zone.wallThickness, zone.height);
-          
-          // Right rail (solid)
           ctx.fillRect(zone.width - zone.wallThickness, 0, zone.wallThickness, zone.height);
-          
-          // Back rail (top) - visual only, no collision
           ctx.fillRect(0, 0, zone.width, zone.wallThickness);
-          
-          // Bottom frame
           ctx.fillRect(0, zone.height - 6, zone.width, 6);
 
-          // Decorative bars INSIDE the frame
           ctx.strokeStyle = '#FFF';
           ctx.lineWidth = 2;
           const innerWidth = zone.width - (zone.wallThickness * 2);
@@ -1020,13 +910,6 @@
             ctx.stroke();
           }
 
-          // Pillow
-          ctx.fillStyle = '#FFF';
-          ctx.beginPath();
-          ctx.ellipse(zone.width/2, zone.wallThickness + 18, 20, 12, 0, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Label
           ctx.font = 'bold 16px Fredoka';
           ctx.fillStyle = '#FFF';
           ctx.strokeStyle = '#000';
@@ -1038,65 +921,71 @@
           ctx.fillText('x' + zone.multiplier, zone.width/2, zone.height + 20);
 
         } else if (zone.type === 'bear') {
+          // Scale bear to half size
+          const scale = 0.25;
+          ctx.save();
+          ctx.scale(scale, scale);
+          
+          const centerX = zone.width / scale / 2;
+          const h = zone.height / scale;
+          
           ctx.fillStyle = '#8B4513';
 
-          ctx.beginPath(); ctx.ellipse(zone.width/2, zone.height - 30, 50, 60, 0, 0, Math.PI*2); ctx.fill();
-          ctx.beginPath(); ctx.arc(zone.width/2, 30, 40, 0, Math.PI*2); ctx.fill();
+          ctx.beginPath(); ctx.ellipse(centerX, h - 30, 50, 60, 0, 0, Math.PI*2); ctx.fill();
+          ctx.beginPath(); ctx.arc(centerX, 30, 40, 0, Math.PI*2); ctx.fill();
           ctx.beginPath();
-          ctx.arc(zone.width/2 - 30, 10, 15, 0, Math.PI*2);
-          ctx.arc(zone.width/2 + 30, 10, 15, 0, Math.PI*2);
+          ctx.arc(centerX - 30, 10, 15, 0, Math.PI*2);
+          ctx.arc(centerX + 30, 10, 15, 0, Math.PI*2);
           ctx.fill();
           
           ctx.fillStyle = '#D2691E';
-          ctx.beginPath(); ctx.ellipse(zone.width/2, 40, 20, 15, 0, 0, Math.PI*2); ctx.fill();
+          ctx.beginPath(); ctx.ellipse(centerX, 40, 20, 15, 0, 0, Math.PI*2); ctx.fill();
           
           ctx.fillStyle = '#000';
           ctx.beginPath(); 
-          ctx.arc(zone.width/2 - 15, 20, 5, 0, Math.PI*2);
-          ctx.arc(zone.width/2 + 15, 20, 5, 0, Math.PI*2); 
+          ctx.arc(centerX - 15, 20, 5, 0, Math.PI*2);
+          ctx.arc(centerX + 15, 20, 5, 0, Math.PI*2); 
           ctx.fill();
           
           ctx.fillStyle = '#000';
-          ctx.beginPath(); ctx.ellipse(zone.width/2, 45, 15, 12, 0, 0, Math.PI*2); ctx.fill();
+          ctx.beginPath(); ctx.ellipse(centerX, 45, 15, 12, 0, 0, Math.PI*2); ctx.fill();
           
-          // Teeth
           ctx.fillStyle = '#FFF';
           for (let i = 0; i < 5; i++) {
             ctx.beginPath();
-            ctx.moveTo(zone.width/2 - 12 + i * 6, 40);
-            ctx.lineTo(zone.width/2 - 12 + i * 6, 48);
-            ctx.lineTo(zone.width/2 - 9 + i * 6, 44);
+            ctx.moveTo(centerX - 12 + i * 6, 40);
+            ctx.lineTo(centerX - 12 + i * 6, 48);
+            ctx.lineTo(centerX - 9 + i * 6, 44);
             ctx.fill();
           }
           
-          // Arms reaching
           ctx.fillStyle = '#8B4513';
           ctx.beginPath();
-          ctx.ellipse(zone.width/2 - 50, zone.height - 40, 15, 30, -30 * Math.PI / 180, 0, Math.PI * 2);
-          ctx.ellipse(zone.width/2 + 50, zone.height - 40, 15, 30, 30 * Math.PI / 180, 0, Math.PI * 2);
+          ctx.ellipse(centerX - 50, h - 40, 15, 30, -30 * Math.PI / 180, 0, Math.PI * 2);
+          ctx.ellipse(centerX + 50, h - 40, 15, 30, 30 * Math.PI / 180, 0, Math.PI * 2);
           ctx.fill();
           
-          // Claws
           ctx.strokeStyle = '#000';
           ctx.lineWidth = 3;
           ctx.lineCap = 'round';
           for (let i = 0; i < 3; i++) {
             ctx.beginPath();
-            ctx.moveTo(zone.width/2 - 60 + i * 5, zone.height - 50);
-            ctx.lineTo(zone.width/2 - 65 + i * 5, zone.height - 60);
+            ctx.moveTo(centerX - 60 + i * 5, h - 50);
+            ctx.lineTo(centerX - 65 + i * 5, h - 60);
             ctx.stroke();
             
             ctx.beginPath();
-            ctx.moveTo(zone.width/2 + 60 - i * 5, zone.height - 50);
-            ctx.lineTo(zone.width/2 + 65 - i * 5, zone.height - 60);
+            ctx.moveTo(centerX + 60 - i * 5, h - 50);
+            ctx.lineTo(centerX + 65 - i * 5, h - 60);
             ctx.stroke();
           }
+          
+          ctx.restore();
 
-          // Label (warning!)
-          ctx.font = 'bold 16px Fredoka';
+          ctx.font = 'bold 12px Fredoka';
           ctx.fillStyle = '#FF0000';
           ctx.strokeStyle = '#000';
-          ctx.lineWidth = 3;
+          ctx.lineWidth = 2;
           ctx.textAlign = 'center';
           ctx.strokeText('🚨 BEAR 🚨', zone.width/2, -10);
           ctx.fillText('🚨 BEAR 🚨', zone.width/2, -10);
@@ -1115,8 +1004,8 @@
       ctx.strokeStyle = '#000';
       ctx.lineWidth = 4;
       const text = randomEvent.emoji + ' ' + randomEvent.name + ' ' + randomEvent.emoji;
-      ctx.strokeText(text, canvas.clientWidth/2, 100);
-      ctx.fillText(text, canvas.clientWidth/2, 100);
+      ctx.strokeText(text, 187, 100);
+      ctx.fillText(text, 187, 100);
 
       if (randomEvent.type === 'wind') {
         for (let i=0;i<10;i++){
@@ -1124,13 +1013,13 @@
           ctx.lineWidth = 2;
           ctx.beginPath();
           const y = 150 + i*50;
-          const off = (Date.now()/10 + i*20) % canvas.clientWidth;
+          const off = (Date.now()/10 + i*20) % 375;
           ctx.moveTo(off, y); ctx.lineTo(off + 30, y);
           ctx.stroke();
         }
       }
       if (randomEvent.type === 'helicopter') {
-        const x = canvas.clientWidth/2 + Math.sin(Date.now()/500)*100;
+        const x = 187 + Math.sin(Date.now()/500)*100;
         const y = 150;
         ctx.fillStyle = '#FF0000';
         ctx.fillRect(x-30, y, 60, 20);
@@ -1141,7 +1030,7 @@
     }
 
     function gameLoop(){
-      ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+      ctx.clearRect(0, 0, 375, 517);
 
       drawGround();
       drawZones();
