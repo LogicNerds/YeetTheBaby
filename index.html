@@ -557,7 +557,7 @@
     }
 
     function animatePower(){
-      powerPos += indicatorDir * 2;
+      powerPos += indicatorDir * 1;
       if (powerPos >= 100) { powerPos = 100; indicatorDir = -1; }
       if (powerPos <= 0)   { powerPos = 0;   indicatorDir = 1; }
       powerIndicator.style.left = powerPos + '%';
@@ -576,7 +576,7 @@
     }
 
     function animateAngle(){
-      anglePos += indicatorDir * 2;
+      anglePos += indicatorDir * 1;
       if (anglePos >= 100) { anglePos = 100; indicatorDir = -1; }
       if (anglePos <= 0)   { anglePos = 0;   indicatorDir = 1; }
       angleIndicator.style.left = anglePos + '%';
