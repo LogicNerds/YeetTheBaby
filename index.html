@@ -434,6 +434,36 @@
     const cpsScore = document.getElementById('cpsScore');
     const cpsDistance = document.getElementById('cpsDistance');
 
+    // Load sprite images
+    const sprites = {
+      baby: new Image(),
+      pool: new Image(),
+      crib: new Image(),
+      bear: new Image(),
+      parent: new Image()
+    };
+
+    sprites.baby.src = 'https://raw.githubusercontent.com/LogicNerds/YeetTheBaby/main/assets/baby.png';
+    sprites.pool.src = 'https://raw.githubusercontent.com/LogicNerds/YeetTheBaby/main/assets/pool.png';
+    sprites.crib.src = 'https://raw.githubusercontent.com/LogicNerds/YeetTheBaby/main/assets/crib.png';
+    sprites.bear.src = 'https://raw.githubusercontent.com/LogicNerds/YeetTheBaby/main/assets/bear.png';
+    sprites.parent.src = 'https://raw.githubusercontent.com/LogicNerds/YeetTheBaby/main/assets/parent.png';
+
+    // Wait for all images to load
+    let imagesLoaded = 0;
+    const totalImages = 5;
+    Object.values(sprites).forEach(img => {
+      img.onload = () => {
+        imagesLoaded++;
+        if (imagesLoaded === totalImages) {
+          console.log('All sprites loaded!');
+        }
+      };
+      img.onerror = () => {
+        console.error('Failed to load sprite:', img.src);
+      };
+    });
+
     let gameState = 'start';
     let score = 0;
     let totalDistance = 0;
@@ -445,7 +475,7 @@
 
     // FIXED POSITIONS - 25ft spacing (94px at 3.75px/ft)
     // Parent at 5ft (19px), all objects level at y=400
-    const parent = { x: 19, y: 400, width: 40, height: 60 };
+    const parent = { x: 19, y: 400, width: 40, height: 40 };
     let baby = {
       x: 0, y: 0, vx: 0, vy: 0,
       rotation: 0, rotationSpeed: 0, size: 12, flying: false
@@ -453,11 +483,12 @@
 
     // Pool at 40ft (150px = 113+37.5)
     // Crib at 65ft (244px = 207+37.5)  
-    // Bear at 90ft (338px = 301+37.5) - half size
+    // Bear at 90ft (338px = 301+37.5)
+    // All zones are SQUARE to match 1:1 sprite aspect ratios
     let landingZones = [
-      { x: 131, y: 400, width: 37, height: 25, type: 'pool', name: 'POOL', multiplier: 2, color: '#4ECDC4', hasWalls: true, wallThickness: 4 },
-      { x: 225, y: 400, width: 37, height: 28, type: 'crib', name: 'CRIB', multiplier: 5, color: '#FFB6C1', hasWalls: true, wallThickness: 3 },
-      { x: 310, y: 400, width: 20, height: 25, type: 'bear', name: 'BEAR', multiplier: -1, color: '#8B4513', hasWalls: false }
+      { x: 131, y: 400, width: 50, height: 50, type: 'pool', name: 'POOL', multiplier: 2, color: '#4ECDC4', hasWalls: true, wallThickness: 6 },
+      { x: 225, y: 400, width: 50, height: 50, type: 'crib', name: 'CRIB', multiplier: 5, color: '#FFB6C1', hasWalls: true, wallThickness: 5 },
+      { x: 310, y: 400, width: 60, height: 60, type: 'bear', name: 'BEAR', multiplier: -1, color: '#8B4513', hasWalls: false }
     ];
 
     /* CANVAS SETUP */
@@ -488,24 +519,32 @@
       
       // Update positions based on actual height and scale
       const groundY = canvasHeight - 100;
-      parent.x = 19 * scale;
-      parent.y = groundY - 25;
+      parent.x = -20;
+      parent.y = groundY - 60;
       
-      landingZones[0].x = 131 * scale;
-      landingZones[0].y = groundY - 25;
-      landingZones[0].width = 37 * scale;
+      // POOL - scale all dimensions including height and wallThickness
+      landingZones[0].x = 91 * scale;
+      landingZones[0].width = 75 * scale;
+      landingZones[0].height = 75 * scale;
+      landingZones[0].y = groundY - 30;
+      landingZones[0].wallThickness = 6 * scale;
       
-      landingZones[1].x = 225 * scale;
-      landingZones[1].y = groundY - 25;
-      landingZones[1].width = 37 * scale;
+      // CRIB - scale all dimensions including height and wallThickness
+      landingZones[1].x = 201 * scale;
+      landingZones[1].width = 55 * scale;
+      landingZones[1].height = 55 * scale;
+      landingZones[1].y = groundY - 30;
+      landingZones[1].wallThickness = 5 * scale;
       
-      landingZones[2].x = 310 * scale;
-      landingZones[2].y = groundY - 50;
-      landingZones[2].width = 20 * scale;
+      // BEAR - scale all dimensions (no walls)
+      landingZones[2].x = 290 * scale;
+      landingZones[2].width = 110 * scale;
+      landingZones[2].height = 110 * scale;
+      landingZones[2].y = groundY - 65;
 
       if (!baby.flying) {
-        baby.x = parent.x + 25 * scale;
-        baby.y = parent.y;
+        baby.x = parent.x + 45;
+        baby.y = parent.y + 30;
       }
     }
     window.addEventListener('resize', resizeCanvas);
@@ -557,7 +596,7 @@
     }
 
     function animatePower(){
-      powerPos += indicatorDir * 1;
+      powerPos += indicatorDir * 6;
       if (powerPos >= 100) { powerPos = 100; indicatorDir = -1; }
       if (powerPos <= 0)   { powerPos = 0;   indicatorDir = 1; }
       powerIndicator.style.left = powerPos + '%';
@@ -576,7 +615,7 @@
     }
 
     function animateAngle(){
-      anglePos += indicatorDir * 1;
+      anglePos += indicatorDir * 5.5;
       if (anglePos >= 100) { anglePos = 100; indicatorDir = -1; }
       if (anglePos <= 0)   { anglePos = 0;   indicatorDir = 1; }
       angleIndicator.style.left = anglePos + '%';
@@ -696,7 +735,7 @@
         const topWall = zone.y; // This is OPEN - baby can enter from above
 
         // Check if baby is within the vertical range of the zone (including space above for entry)
-        const inVerticalRange = baby.y + babyRadius >= topWall && baby.y - babyRadius <= bottomWall;
+        const inVerticalRange = baby.y >= topWall && baby.y - babyRadius <= bottomWall;
 
         if (inVerticalRange) {
           
@@ -806,14 +845,13 @@
     }
 
     function resetForNextThrow(){
-      baby.x = parent.x + 25 * scale;
-      baby.y = parent.y;
       baby.vx = 0; baby.vy = 0;
       baby.rotation = 0; baby.flying = false;
       randomEvent = null;
       gameState = 'ready';
       yeetPhase = 'power';
       startPowerAnim();
+resizeCanvas();
     }
 
     function resetGame(){
@@ -844,60 +882,10 @@
       ctx.save();
       ctx.translate(parent.x, parent.y);
       
-      ctx.scale(0.3, 0.3);
-
-      ctx.fillStyle = '#4169E1';
-      ctx.fillRect(10, 60, 15, 40);
-      ctx.fillRect(35, 60, 15, 40);
-
-      ctx.fillStyle = '#000';
-      ctx.fillRect(8, 95, 20, 8);
-      ctx.fillRect(33, 95, 20, 8);
-
-      ctx.fillStyle = '#FF6B9D';
-      ctx.fillRect(5, 20, 50, 45);
-
-      ctx.fillStyle = '#FFD4A3';
-      ctx.fillRect(0, 25, 10, 35);
-      ctx.beginPath(); ctx.arc(5, 62, 6, 0, Math.PI*2); ctx.fill();
-
-      ctx.save();
-      ctx.translate(55, 25);
-      if (gameState === 'ready' || gameState === 'aiming') ctx.rotate(-45 * Math.PI/180);
-      ctx.fillRect(0, 0, 10, 35);
-      ctx.beginPath(); ctx.arc(5, 37, 6, 0, Math.PI*2); ctx.fill();
-      ctx.restore();
-
-      ctx.fillStyle = '#FFD4A3';
-      ctx.fillRect(22, 10, 16, 12);
-      ctx.beginPath(); ctx.arc(30, 5, 18, 0, Math.PI*2); ctx.fill();
-
-      ctx.fillStyle = '#8B4513';
-      ctx.beginPath(); 
-      ctx.arc(30, -5, 18, Math.PI, Math.PI * 2);
-      ctx.fill();
+      // Draw parent sprite - adjust size as needed
+      const spriteSize = parent.width * 2;
+      ctx.drawImage(sprites.parent, 0, 0, spriteSize, spriteSize);
       
-      ctx.strokeStyle = '#8B4513'; ctx.lineWidth = 4;
-      for (let i=0;i<5;i++){
-        ctx.beginPath();
-        const a = Math.PI + (i * Math.PI/4);
-        const x = 30 + Math.cos(a)*18;
-        const y = -5 + Math.sin(a)*18;
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + Math.cos(a)*8, y + Math.sin(a)*8);
-        ctx.stroke();
-      }
-
-      ctx.fillStyle = '#000';
-      ctx.beginPath(); ctx.arc(23, 3, 3, 0, Math.PI*2); ctx.arc(37, 3, 3, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(30, 10, 8, 0.2, Math.PI-0.2); ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(18,-2); ctx.lineTo(28,0);
-      ctx.moveTo(42,-2); ctx.lineTo(32,0);
-      ctx.stroke();
-
       ctx.restore();
     }
 
@@ -905,27 +893,12 @@
       ctx.save();
       ctx.translate(baby.x, baby.y);
       ctx.rotate(baby.rotation);
-
-      ctx.fillStyle = '#87CEEB';
-      ctx.fillRect(-baby.size/2, -baby.size/2, baby.size, baby.size);
-
-      ctx.fillStyle = '#FFE4C4';
-      ctx.beginPath(); ctx.arc(0, -baby.size/3, baby.size/3, 0, Math.PI*2); ctx.fill();
-
-      ctx.fillStyle = '#000';
-      ctx.beginPath();
-      ctx.arc(-5, -baby.size/3, 2, 0, Math.PI*2);
-      ctx.arc(5, -baby.size/3, 2, 0, Math.PI*2);
-      ctx.fill();
-
-      if (baby.flying){
-        ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.arc(0, -baby.size/3 + 5, 5, 0, Math.PI); ctx.stroke();
-      }
-
-      ctx.fillStyle = '#FFF';
-      ctx.fillRect(-baby.size/2, baby.size/4, baby.size, baby.size/4);
-
+      
+      // Draw sprite centered - adjust multiplier for desired size
+      const spriteWidth = baby.size * 2.5;
+const spriteHeight = baby.size * 3.5;
+ctx.drawImage(sprites.baby, -spriteWidth/2, -spriteHeight/2, spriteWidth, spriteHeight);
+      
       ctx.restore();
     }
 
@@ -935,29 +908,10 @@
         ctx.translate(zone.x, zone.y);
 
         if (zone.type === 'pool') {
-          ctx.fillStyle = '#4ECDC4';
-          ctx.fillRect(zone.wallThickness, zone.wallThickness, 
-                     zone.width - (zone.wallThickness * 2), 
-                     zone.height - zone.wallThickness);
-
-          ctx.fillStyle = '#2C3E50';
-          ctx.fillRect(0, 0, zone.wallThickness, zone.height);
-          ctx.fillRect(zone.width - zone.wallThickness, 0, zone.wallThickness, zone.height);
-          ctx.fillRect(0, 0, zone.width, zone.wallThickness);
-          ctx.fillRect(0, zone.height - 4, zone.width, 4);
+          // Draw pool sprite
+          ctx.drawImage(sprites.pool, 0, 0, zone.width, zone.height);
           
-          ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-          ctx.lineWidth = 2;
-          const innerWidth = zone.width - (zone.wallThickness * 2);
-          const rippleSpacing = innerWidth / 4;
-          for (let i = 0; i < 3; i++) {
-            ctx.beginPath();
-            ctx.arc(zone.wallThickness + rippleSpacing * (i + 0.5), 
-                   zone.wallThickness + 15, 
-                   8, 0, Math.PI);
-            ctx.stroke();
-          }
-
+          // Add label
           ctx.font = 'bold 16px Fredoka';
           ctx.fillStyle = '#FFF';
           ctx.strokeStyle = '#000';
@@ -969,29 +923,10 @@
           ctx.fillText('x' + zone.multiplier, zone.width/2, zone.height + 20);
 
         } else if (zone.type === 'crib') {
-          ctx.fillStyle = '#FFB6C1';
-          ctx.fillRect(zone.wallThickness + 2, zone.wallThickness + 10, 
-                      zone.width - (zone.wallThickness * 2) - 4, 
-                      zone.height - zone.wallThickness - 16);
-
-          ctx.fillStyle = '#8B7355';
-          ctx.fillRect(0, 0, zone.wallThickness, zone.height);
-          ctx.fillRect(zone.width - zone.wallThickness, 0, zone.wallThickness, zone.height);
-          ctx.fillRect(0, 0, zone.width, zone.wallThickness);
-          ctx.fillRect(0, zone.height - 6, zone.width, 6);
-
-          ctx.strokeStyle = '#FFF';
-          ctx.lineWidth = 2;
-          const innerWidth = zone.width - (zone.wallThickness * 2);
-          const barSpacing = innerWidth / 6;
-          for (let i = 1; i < 6; i++) {
-            const x = zone.wallThickness + (barSpacing * i);
-            ctx.beginPath();
-            ctx.moveTo(x, zone.wallThickness + 2);
-            ctx.lineTo(x, zone.height - 8);
-            ctx.stroke();
-          }
-
+          // Draw crib sprite
+          ctx.drawImage(sprites.crib, 0, 0, zone.width, zone.height);
+          
+          // Add label
           ctx.font = 'bold 16px Fredoka';
           ctx.fillStyle = '#FFF';
           ctx.strokeStyle = '#000';
@@ -1003,67 +938,10 @@
           ctx.fillText('x' + zone.multiplier, zone.width/2, zone.height + 20);
 
         } else if (zone.type === 'bear') {
-          // Scale bear to half size
-          const scale = 0.25;
-          ctx.save();
-          ctx.scale(scale, scale);
+          // Draw bear sprite
+          ctx.drawImage(sprites.bear, 0, 0, zone.width, zone.height);
           
-          const centerX = zone.width / scale / 2;
-          const h = zone.height / scale;
-          
-          ctx.fillStyle = '#8B4513';
-
-          ctx.beginPath(); ctx.ellipse(centerX, h - 30, 50, 60, 0, 0, Math.PI*2); ctx.fill();
-          ctx.beginPath(); ctx.arc(centerX, 30, 40, 0, Math.PI*2); ctx.fill();
-          ctx.beginPath();
-          ctx.arc(centerX - 30, 10, 15, 0, Math.PI*2);
-          ctx.arc(centerX + 30, 10, 15, 0, Math.PI*2);
-          ctx.fill();
-          
-          ctx.fillStyle = '#D2691E';
-          ctx.beginPath(); ctx.ellipse(centerX, 40, 20, 15, 0, 0, Math.PI*2); ctx.fill();
-          
-          ctx.fillStyle = '#000';
-          ctx.beginPath(); 
-          ctx.arc(centerX - 15, 20, 5, 0, Math.PI*2);
-          ctx.arc(centerX + 15, 20, 5, 0, Math.PI*2); 
-          ctx.fill();
-          
-          ctx.fillStyle = '#000';
-          ctx.beginPath(); ctx.ellipse(centerX, 45, 15, 12, 0, 0, Math.PI*2); ctx.fill();
-          
-          ctx.fillStyle = '#FFF';
-          for (let i = 0; i < 5; i++) {
-            ctx.beginPath();
-            ctx.moveTo(centerX - 12 + i * 6, 40);
-            ctx.lineTo(centerX - 12 + i * 6, 48);
-            ctx.lineTo(centerX - 9 + i * 6, 44);
-            ctx.fill();
-          }
-          
-          ctx.fillStyle = '#8B4513';
-          ctx.beginPath();
-          ctx.ellipse(centerX - 50, h - 40, 15, 30, -30 * Math.PI / 180, 0, Math.PI * 2);
-          ctx.ellipse(centerX + 50, h - 40, 15, 30, 30 * Math.PI / 180, 0, Math.PI * 2);
-          ctx.fill();
-          
-          ctx.strokeStyle = '#000';
-          ctx.lineWidth = 3;
-          ctx.lineCap = 'round';
-          for (let i = 0; i < 3; i++) {
-            ctx.beginPath();
-            ctx.moveTo(centerX - 60 + i * 5, h - 50);
-            ctx.lineTo(centerX - 65 + i * 5, h - 60);
-            ctx.stroke();
-            
-            ctx.beginPath();
-            ctx.moveTo(centerX + 60 - i * 5, h - 50);
-            ctx.lineTo(centerX + 65 - i * 5, h - 60);
-            ctx.stroke();
-          }
-          
-          ctx.restore();
-
+          // Add label
           ctx.font = 'bold 12px Fredoka';
           ctx.fillStyle = '#FF0000';
           ctx.strokeStyle = '#000';
