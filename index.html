@@ -354,7 +354,6 @@
       </div>
 
       <div class="top-actions">
-        <button id="audioToggle" class="chip" title="Toggle Music">Sound</button>
         <button id="restartBtn" class="chip" title="Restart">Restart</button>
       </div>
 
@@ -404,7 +403,7 @@
   </div>
 
   <audio id="bgMusic" preload="auto" loop>
-    <source src="retro-8bit-happy-videogame-music-246631.mp3" type="audio/mpeg" />
+    <source src="https://raw.githubusercontent.com/LogicNerds/YeetTheBaby/main/retro-8bit-happy-videogame-music-246631.mp3" type="audio/mpeg" />
   </audio>
 
   <script>
@@ -424,7 +423,6 @@
     const captionEl = document.getElementById('caption');
 
     const bgMusic = document.getElementById('bgMusic');
-    const audioToggle = document.getElementById('audioToggle');
     const restartBtn = document.getElementById('restartBtn');
     const cpsOverlay = document.getElementById('cpsOverlay');
     const cpsTryAgain = document.getElementById('cpsTryAgain');
@@ -470,8 +468,6 @@
     let yeetPhase = 'power';
     let powerValue = 0;
     let angleValue = 50;
-
-    let audioEnabled = true;
 
     // FIXED POSITIONS - 25ft spacing (94px at 3.75px/ft)
     // Parent at 5ft (19px), all objects level at y=400
@@ -550,33 +546,25 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    /* AUDIO */
-    function setAudioUi() {
-      audioToggle.textContent = audioEnabled ? 'Sound: On' : 'Sound: Off';
-    }
-    setAudioUi();
-
-    function toggleAudio() {
-      audioEnabled = !audioEnabled;
-      if (!audioEnabled) bgMusic.pause();
-      else bgMusic.play();
-      setAudioUi();
-    }
-
-    audioToggle.addEventListener('pointerdown', (e)=>{ e.preventDefault(); toggleAudio(); }, {passive:true});
+    /* AUDIO - Simple direct play on start */
 
     /* START / RESTART */
-    startBtn.addEventListener('pointerdown', (e)=>{
+    startBtn.addEventListener('click', function(e) {
       e.preventDefault();
       startScreen.style.display = 'none';
       gameState = 'ready';
-      if (audioEnabled) bgMusic.play();
+      
+      // Direct music play - triggered by user click
+      bgMusic.volume = 1.0;
+      bgMusic.currentTime = 0;
+      bgMusic.play();
+      
       startPowerAnim();
       requestAnimationFrame(gameLoop);
-    }, {passive:true});
+    });
 
-    restartBtn.addEventListener('pointerdown', (e)=>{ e.preventDefault(); resetGame(); }, {passive:true});
-    cpsTryAgain.addEventListener('pointerdown', (e)=>{ e.preventDefault(); resetGame(); }, {passive:true});
+    restartBtn.addEventListener('click', (e)=>{ e.preventDefault(); resetGame(); });
+    cpsTryAgain.addEventListener('click', (e)=>{ e.preventDefault(); resetGame(); });
 
     /* POWER & ANGLE INDICATORS */
     let rafId = null;
@@ -636,7 +624,7 @@
       }
     }
 
-    yeetBtn.addEventListener('pointerdown', (e)=>{ e.preventDefault(); handleYeetPress(); }, {passive:true});
+    yeetBtn.addEventListener('click', (e)=>{ e.preventDefault(); handleYeetPress(); });
 
     /* PHYSICS & GAME LOGIC */
     let randomEvent = null;
