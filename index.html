@@ -917,6 +917,7 @@ function restartGame() { Audio2.sfx('select'); newGame(); }
 
 function startRound(first) {
   buildRound(G.round); resetBaby();
+  G.strikes = 0;                          // strikes reset every round
   Cam.x = AIM_CAM_X; Cam.y = 0;
   const sub = G.round === 1 ? 'LAND IN THE POOL OR THE CRIB'
     : G.newThisRound.length ? 'NEW: ' + G.newThisRound.join(' + ') : 'FARTHER. SMALLER. BEAR-IER.';
